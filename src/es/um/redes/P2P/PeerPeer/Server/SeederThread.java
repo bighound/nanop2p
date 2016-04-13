@@ -20,7 +20,11 @@ public class SeederThread extends Thread {
 		try {
 			// Recibo de datos
 			
-			InputStream is = socket.getInputStream();			
+			InputStream is = socket.getInputStream();
+			
+			// Interpretacion del protocolo
+			// Primera clase, leer el hash de un fichero y devolver el hash.
+			
 			socket.close();
 		} catch (Exception e) {
 			e.printStackTrace();

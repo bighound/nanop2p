@@ -5,6 +5,8 @@ import java.net.*;
 
 public class Downloader {
 	
+	// Aqui hay que implementar la sincronizacion entre los trozos que descargan los peer
+	// para que no haya conflictos y varios peer no accedan al mismo trozo
 
 	public void download(String peerAddress,int peerPort,String fileHash) throws NumberFormatException, UnknownHostException, IOException
 	{
