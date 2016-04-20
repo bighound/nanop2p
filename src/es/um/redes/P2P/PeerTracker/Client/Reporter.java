@@ -39,7 +39,7 @@ public class Reporter extends Thread {
 		trackerHostname = tracker;
 	}
 	
-	private Message sendMsg(byte requestOpcode, FileInfo[] file) throws IOException{
+	public Message sendMsg(byte requestOpcode, FileInfo[] file) throws IOException{
 		// Abrimos el socket
 		DatagramSocket socket = new DatagramSocket();
 		
@@ -54,7 +54,8 @@ public class Reporter extends Thread {
 		InetSocketAddress addr = new InetSocketAddress(trackerHostname, PORT);	
 		DatagramPacket packet = new DatagramPacket(buf, buf.length, addr);
 		socket.send(packet);
-		System.out.println(message.toString() + "\n");
+		//System.out.println(message.toString() + "\n");
+		
 		
 		// Recibimos la respuesta
 		buf = new byte[Message.MAX_UDP_PACKET_LENGTH];
@@ -70,7 +71,7 @@ public class Reporter extends Thread {
 	}
 
 	
-	public void run() {
+	/*public void run() {
 		System.out.println("Reporter starting conversation with tracker at "+trackerHostname);
 		System.out.println("Shared folder path is "+sharedFolderPath);
 
@@ -117,5 +118,5 @@ public class Reporter extends Thread {
 		
 		System.out.println("Reporter ending conversation with tracker");
 
-	}
+	}*/
 }
