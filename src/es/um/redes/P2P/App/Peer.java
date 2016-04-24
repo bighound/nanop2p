@@ -39,7 +39,24 @@ public class Peer {
 			case "queryfiles":
 				System.out.println((client.sendMsg(Message.OP_QUERY_FILES, localFile)).toString());
 				break;
+			case "getseeds":
+				System.out.println((client.sendMsg(Message.OP_GET_SEEDS, localFile)).toString());
+				break;
+			case "cliente":
+				Socket socketCliente = new Socket("127.0.0.1",4450);
+				//socketCliente.connect(null);
+				break;
+			case "servidor":
+				ServerSocket socketServer = new ServerSocket(4450);
+				Socket cliente = socketServer.accept();
+				System.out.println("Esta prueba ha sido un exito rotundo en todos los paises de habla hispana ");
+				/*Socket cliente = socketServidor.accept();
+				cliente.setSoLinger(true,10);
 				
+				ObjectInputStream ois = new ObjectInputStream(cliente.getInputStream());
+				Object mensaje = ois.readObject();*/
+				
+				break;	
 			case "exit":
 				continua=false;
 				System.out.println("Fin del proceso del peer");
