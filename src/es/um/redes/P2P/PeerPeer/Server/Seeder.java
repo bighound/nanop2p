@@ -11,14 +11,13 @@ import java.net.Socket;
  */
 public class Seeder implements Runnable {
 
-	public static final int PORT = 8009;
+	private static final int PORT = 8009;
+	private static final int FINAL_PORT = 9000;
 	
     private InetSocketAddress socketAddress;
     private ServerSocket seederSocket = null;
 
-    private Seeder(InetSocketAddress a)
-    {
-    	this.socketAddress = a;
+    public Seeder() {
     }
 
     /** 
@@ -48,30 +47,29 @@ public class Seeder implements Runnable {
     /**
      * Inicio del hilo del servidor.
      */
-    public void init()
-    {
-        try {
-        	// Crea el socket de servidor y lo liga a la dirección
-        	// local y al puerto especificado en socketAddress
-            seederSocket = new ServerSocket();
-            seederSocket.bind(socketAddress);
-            seederSocket.setReuseAddress(true);
-        } catch (IOException e) {
-            System.err.println("Could not listen on port: " 
-            		+ socketAddress.getPort() + ".");
-            System.exit(-1);
-        }
+    public void init(){
+		int puerto = PORT;
+		while(puerto <= FINAL_PORT){
+			socketAddress = new InetSocketAddress(puerto);
+			try {
+				seederSocket = new ServerSocket();
+				seederSocket.bind(socketAddress);
+				seederSocket.setReuseAddress(true);
+				break;
+			} catch (IOException e) {
+				puerto++;
+			}
+		}
+		// Inicia esta clase como un hilo
+		new Thread(this).start();
 
-        // Inicia esta clase como un hilo
-    	new Thread(this).start();
-    	
     	System.out.println("Seeder running on port " +
-    			socketAddress.getPort() + ".");
+    			this.socketAddress.getPort() + ".");
     }
 
     public static void main(String[] args)
     {
-    	Seeder server = new Seeder(new InetSocketAddress(PORT));
+    	Seeder server = new Seeder();
     	server.init();
     }
 }

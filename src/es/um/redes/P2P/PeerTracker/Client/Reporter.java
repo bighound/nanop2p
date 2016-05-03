@@ -21,7 +21,7 @@ public class Reporter extends Thread {
 	private String trackerHostname;		
 	
 	
-	static final int PORT = 4450;
+	private static final int PORT = 4450;
 	/**
 	 * Constructor: 
 	 * @param sharedFolder Path to the shared folder of this peer, relative to $HOME
