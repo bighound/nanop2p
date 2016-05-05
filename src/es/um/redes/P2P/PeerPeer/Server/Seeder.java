@@ -67,6 +67,10 @@ public class Seeder implements Runnable {
     			this.socketAddress.getPort() + ".");
     }
 
+	public int getPort(){
+        return this.socketAddress.getPort();
+    }
+
     public static void main(String[] args)
     {
     	Seeder server = new Seeder();

@@ -18,7 +18,8 @@ public class Reporter extends Thread {
 	/**
 	 * Tracker hostname, for establishing connection
 	 */
-	private String trackerHostname;		
+	private String trackerHostname;
+	private int seedPort;
 	
 	
 	private static final int PORT = 4450;
@@ -26,7 +27,7 @@ public class Reporter extends Thread {
 	 * Constructor: 
 	 * @param sharedFolder Path to the shared folder of this peer, relative to $HOME
 	 */
-	public Reporter(String name, String sharedFolder, String tracker) {
+	public Reporter(String name, String sharedFolder, String tracker, int port) {
 		super(name);
 		//Use getProperty("user.home") instead of System.getenv("HOME") for platform independent code
 		if (new File(sharedFolder).isAbsolute()) {
@@ -37,6 +38,7 @@ public class Reporter extends Thread {
 		}
 
 		trackerHostname = tracker;
+		seedPort = port;
 	}
 	
 	public Message sendMsg(byte requestOpcode, FileInfo[] file) throws IOException{
@@ -47,11 +49,11 @@ public class Reporter extends Thread {
 		byte[] buf;
 		
 		// Preparamos mensaje
-		Message message = Message.makeRequest(requestOpcode, PORT, file);
+		Message message = Message.makeRequest(requestOpcode, seedPort, file);
 		buf=message.toByteArray();
 		
 		// Enviamos el mensaje
-		InetSocketAddress addr = new InetSocketAddress(trackerHostname, PORT);	
+		InetSocketAddress addr = new InetSocketAddress(trackerHostname, PORT);
 		DatagramPacket packet = new DatagramPacket(buf, buf.length, addr);
 		socket.send(packet);
 		//System.out.println(message.toString() + "\n");

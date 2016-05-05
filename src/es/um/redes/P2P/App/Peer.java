@@ -34,7 +34,7 @@ public class Peer {
 		seed.init();
 		
 		// Create client object
-		Reporter client = new Reporter("PeerThread", peerSharedFolder, trackerHostname);
+		Reporter client = new Reporter("PeerThread", peerSharedFolder, trackerHostname, seed.getPort());
 
 		// Start client thread
 		client.start();
@@ -87,7 +87,7 @@ public class Peer {
                 // Enviamos el getseeds del hash deseado y obtenemos su IP y puerto
                 fileToSend[0] = file[posicion];
 				mensaje = client.sendMsg(Message.OP_GET_SEEDS, fileToSend);
-				mds = (MessageDataSeedInfo) mensaje;
+                mds = (MessageDataSeedInfo) mensaje;
 				InetSocketAddress [] dirs;
 				dirs = mds.getSeedList();
                 String ip = dirs[0].getAddress().toString().substring(1);
@@ -104,7 +104,7 @@ public class Peer {
 				break;
 			default:
 				System.out.println("Comando incorrecto");
-				System.out.println("Comandos: addseeds, queryfiles, download, getseeds, removeseed, exit");
+				System.out.println("Comandos: query, download, exit");
 				break;
 			}
 		}
