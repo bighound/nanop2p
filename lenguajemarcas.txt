@@ -1,0 +1,24 @@
+REQUEST_CHUNK: petición del chunk que quiere el cliente (peer-cliente)
+	<message>
+		<operation>request_chunks</operation>
+		<hash>hash</hash>
+		<chunks>chunk_number</chunks>
+	</message>
+
+SEND_CHUNK: envío de un chunk del cliente al servidor (peer-servidor)
+	<message>
+		<operation>send_chunk</operation>
+		<send_chunk>chunk</send_chunk>
+	</message>
+
+ALL_CHUNKS_RECEIVED: mensaje para indicarle al servidor que ya hemos recibido todos los chunks
+	y vamos a cerrar la conexión.
+	<message>
+		<operation>all_chunks_received</operation>
+	</message>
+
+FILE_NOT_FOUND: mensaje
+	<message>
+		<operation>file_not_found</operation>
+		<hash>hash</hash>
+	</message>
