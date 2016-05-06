@@ -1,6 +1,5 @@
 package es.um.redes.P2P.PeerPeer.Message;
 
-
 /*
     REQUEST_CHUNK: petición del chunk que quiere el cliente (peer-cliente)
 	<message>
@@ -28,8 +27,6 @@ package es.um.redes.P2P.PeerPeer.Message;
 	</message>
 */
 
-
-
 import java.util.regex.*;
 import java.util.regex.Pattern;
 
@@ -43,52 +40,40 @@ public class Message {
     private String mensaje = "<(message)>\\s*?<(operation)>(.*?)</\\2>((.|\\s)*?)</\\1>";
 
     // Expresion regular que hace match con un hash
-    // Grupo 1: hash
-    // Grupo 2: identificador hash
-    private String hash = "<(hash)>(.*?)</\\1>";
+    // Grupo 2: hash number
+    // Grupo 4: chunk_number
+    private String reqChunks = "<(hash)>(.*?)</\\1>\\s*?<(chunk)>(.*?)</\\3>";
 
     // Expresion regular que hace match con un numero de chunk
-    // Grupo 1: chunk
-    // Grupo 2: numero de chunk
-    private String chunk = "<(chunk)>(.*?)</\\1>";
+    // Grupo 2: chunk
+    private String sndChunk = "<(send_chunk)>(.*?)</\\1>";
 
     // Expresion regular que hace match con un chunk
-    // Grupo 1: send_chunk
-    // Grupo 2: datos del chunk
-    private String send_chunk = "<(send_chunk)>(.*?)</\\1>";
+    // Grupo 2: hash_number
+    private String fileNot = "<(send_chunk)>(.*?)</\\1>";
 
 
-    public void requestChunks(String s){
-        Pattern p = Pattern.compile(hash);
+    private void requestChunks(String s){
+        Pattern p = Pattern.compile(reqChunks);
         Matcher m = p.matcher(s);
         m.find();
-        String fileHash = m.group(1);
-        p = Pattern.compile(chunk);
-        m = p.matcher(s);
+        String fileHash = m.group(2);
+        String chunkNumber = m.group(4);
+
+    }
+
+    private void sendChunk(String s){
+        Pattern p = Pattern.compile(sndChunk);
+        Matcher m = p.matcher(s);
         m.find();
+        String chunk = m.group(2);
+    }
 
-
-    }
-    public void sendChunk(String s){
-        Pattern p = Pattern.compile(hash);
+    private void fileNotFound(String s){
+        Pattern p = Pattern.compile(fileNot);
         Matcher m = p.matcher(s);
-        if (!m.find()){
-            System.out.println("Mensaje con formato no correcto");
-        }
-    }
-    public void allChunksReceived(String s){
-        Pattern p = Pattern.compile(hash);
-        Matcher m = p.matcher(s);
-        if (!m.find()){
-            System.out.println("Mensaje con formato no correcto");
-        }
-    }
-    public void fileNotFound(String s){
-        Pattern p = Pattern.compile(hash);
-        Matcher m = p.matcher(s);
-        if (!m.find()){
-            System.out.println("Mensaje con formato no correcto");
-        }
+        m.find();
+        String fileHash = m.group(2);
     }
 
 
@@ -111,16 +96,15 @@ public class Message {
                 sendChunk(contenido);
                 break;
             case "all_chunks_received":
-                sendChunk(contenido);
+                // Señal todos recibidos
                 break;
             case "file_not_found":
-                sendChunk(contenido);
+                fileNotFound(contenido);
                 break;
             default:
                 System.out.println("Mensaje con formato no correcto");
                 break;
         }
-
         return true;
     }
 
