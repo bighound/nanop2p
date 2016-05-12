@@ -2,8 +2,8 @@ package es.um.redes.P2P.PeerPeer.Message;
 
 /*
     REQUEST_CHUNK: petición del chunk que quiere el cliente (peer-cliente)
-	<message>
-		<operation>request_chunks</operation>
+    <message>
+	    <operation>request_chunk</operation>
 		<hash>hash</hash>
 		<chunk>chunk_number</chunk>
 	</message>
@@ -31,7 +31,7 @@ import java.util.regex.*;
 import java.util.regex.Pattern;
 
 public class Message {
-
+    private static String msg;
     // Expresion regular que hace match con un mensaje entero
     // Grupo 1: message
     // Grupo 2: operation
@@ -76,6 +76,28 @@ public class Message {
         String fileHash = m.group(2);
     }
 
+    public static String createMessageRequest (String hash, int chunk){
+        String chunkS = chunk + "";
+        msg = ("<message><operation>request_chunk</operation><hash>" + hash + "</hash><chunk>" +
+                                    chunkS + "</chunk></message>");
+        return msg;
+    }
+
+    public static String createMessageSend (String chunk){
+        msg = ("<message><operation>send_chunk</operation><send_chunk>" + chunk + "</send_chunk></message>");
+        return msg;
+    }
+
+    public static String createMessageAll (){
+        msg = ("<message><operation>all_chunks_received</operation></message>");
+        return msg;
+    }
+
+    public static String createMessageNot (String hash){
+        msg =("<message><operation>file_not_found</operation><hash>" + hash + "</hash></message>");
+        return msg;
+    }
+
 
 
     public boolean parseMessage(String m){
@@ -89,7 +111,7 @@ public class Message {
         String contenido = mat.group(4);
 
         switch (tipoOperacion){
-            case "request_chunks":
+            case "request_chunk":
                 requestChunks(contenido);
                 break;
             case "send_chunk":
