@@ -27,16 +27,22 @@ public class DownloaderThread extends Thread {
 		try {
 			// En un Socket, para enviar hay que usar su OutputStream
 			OutputStream os = socket.getOutputStream();
-			System.out.println("Ha enviado: " + fileHash);
-			String msg = Message.createMessageRequest(fileHash, 1);
+			System.out.println("Ha enviado(el downloader): " + fileHash);
+			//String msg = Message.createMessageRequest(fileHash, 1);
+			/*
+			 * Enviamos el mensaje de Request chunks
+			 */
+			String msg = Message.createMessageRequest(fileHash,1);
 			socket.getOutputStream().write(msg.getBytes());
 
-
-			/*InputStream is = socket.getInputStream();
-			byte buffer[] = new byte[100];
+			/*
+			 * Se pone a la escucha de posibles mensajes.
+			 */
+			InputStream is = socket.getInputStream();
+			byte buffer[] = new byte[150];
 			is.read(buffer);
 			String s = new String(buffer, 0, buffer.length);
-			System.out.println("Ha recibido: " + s);*/
+			System.out.println("Ha recibido(soy el downloader): " + s);
 
 
 		} catch (Exception e) {

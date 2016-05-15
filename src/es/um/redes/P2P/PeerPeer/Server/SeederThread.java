@@ -1,9 +1,12 @@
 package es.um.redes.P2P.PeerPeer.Server;
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
+
+import es.um.redes.P2P.PeerPeer.Message.Message;
 
 /**
  * Hilo que se ejecuta cada vez que se conecta un nuevo cliente.
@@ -22,18 +25,62 @@ public class SeederThread extends Thread {
 	public void run() {
 		try {
 			// Recibo de datos
-			
+			Message msg = new Message();
+			byte[] buffer = new byte[150];
 			InputStream is = socket.getInputStream();
-			BufferedReader br = new BufferedReader(new InputStreamReader(is));
-			br.t
 			is.read(buffer);
 			String s = new String(buffer, 0, buffer.length);
-			System.out.println("Ha recibido: " + s);
-
+			//BufferedReader br = new BufferedReader(new InputStreamReader(is));
+			//br.toString();
+			
+			//is.read();
+			//String s = new String(buffer, 0, buffer.length);
+			System.out.println("Ha recibido(el seeder): " + s );
+			
+			
+			
+			OutputStream os = socket.getOutputStream();
+			String m;
+			switch (msg.parseMessage(s)) {
+			case 1: //request_chunk
+                //requestChunks(contenido);
+				 m = Message.createMessageSend("Aqui iría el chunk");
+				socket.getOutputStream().write(m.getBytes());
+				System.out.println("El seeder ha enviado un send_chunk: "+ m);
+                break;
+           /* case "send_chunk":  
+            	tipo = 2;
+                //sendChunk(contenido);
+                break;*/
+            case 3:  // all_chunks_received Si me envian un all chunks received entonces le envío un mensaje de correcto:
+            	 m = "OK todo correcto";
+				socket.getOutputStream().write(m.getBytes());
+				System.out.println("El seeder ha enviado un OK: "+ m);
+                // SeÃ±al todos recibidos
+                break;
+            case 4:   //File not found
+            	m = Message.createMessageNot("Este es un hash");
+				socket.getOutputStream().write(m.getBytes());
+				System.out.println("File no encontrado: "+ m);
+                //fileNotFound(contenido);
+                break;
+            default:
+                System.out.println("Mensaje con formato no correcto");
+                break;
+			}
+			//System.out.println("Ha enviado(el seeder): " + fileHash);
+			
+			
 			/*OutputStream os = socket.getOutputStream();
-			System.out.println("Ha enviado: " + s);
-			socket.getOutputStream().write(s.getBytes());*/
-
+			Message m = new Message();
+			m.createMessageSend(s);
+			DataOutputStream dos = new DataOutputStream(os);
+			dos.writeChars(Message.createMessageSend(s));
+			//String m = Message.createMessageRequest(fileHash, 1);
+			//socket.getOutputStream().write(m.toString());
+			System.out.println("Ha enviado: " + m);
+			//socket.getOutputStream().write(m.getBytes());
+*/
 
 			
 			// Interpretacion del protocolo

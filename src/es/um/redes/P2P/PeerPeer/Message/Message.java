@@ -100,8 +100,9 @@ public class Message {
 
 
 
-    public boolean parseMessage(String m){
-
+    public int parseMessage(String m){
+    	
+    	int tipo = 0;
         Pattern pat = Pattern.compile(mensaje);
         Matcher mat = pat.matcher(m);
         if (!mat.find()){
@@ -112,22 +113,28 @@ public class Message {
 
         switch (tipoOperacion){
             case "request_chunk":
-                requestChunks(contenido);
+                //requestChunks(contenido);
+            	tipo=1;
                 break;
             case "send_chunk":
-                sendChunk(contenido);
+            	tipo = 2;
+                //sendChunk(contenido);
                 break;
             case "all_chunks_received":
+            	tipo = 3;
                 // Señal todos recibidos
                 break;
             case "file_not_found":
-                fileNotFound(contenido);
+            	tipo = 4;
+                //fileNotFound(contenido);
                 break;
             default:
                 System.out.println("Mensaje con formato no correcto");
+                tipo = 5;
                 break;
         }
-        return true;
+        return tipo;
+       // return true;
     }
 
 
