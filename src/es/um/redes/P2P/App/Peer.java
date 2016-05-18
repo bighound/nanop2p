@@ -92,10 +92,10 @@ public class Peer {
 				dirs = mds.getSeedList();
                 String ip = dirs[0].getAddress().toString().substring(1);
                 int puerto = dirs[0].getPort();
-
+                long fileS = fileToSend[0].fileSize;
 				// Crear un objeto downloader
 				Downloader down = new Downloader();
-				down.download(ip, puerto, hash);
+				down.download(ip, puerto, hash,fileS);
 				break;
 
             case "exit":

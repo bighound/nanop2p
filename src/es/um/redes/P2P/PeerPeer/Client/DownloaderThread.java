@@ -2,7 +2,11 @@ package es.um.redes.P2P.PeerPeer.Client;
 
 import es.um.redes.P2P.PeerPeer.Message.Message;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -12,12 +16,14 @@ public class DownloaderThread extends Thread {
 	private Socket socket = null;
 	private Downloader downloader = null;
 	private String fileHash;
+	private long fileS;
 
-	public DownloaderThread(Downloader downloader, Socket socket, String fileHash) {
+	public DownloaderThread(Downloader downloader, Socket socket, String fileHash,long fileS) {
 		super("DowloaderThread");
 		this.socket = socket;
 		this.downloader = downloader;
 		this.fileHash = fileHash;
+		this.fileS = fileS;
 	}
 
 	/** Función de los hilos que atienden a los clientes.
@@ -38,12 +44,23 @@ public class DownloaderThread extends Thread {
 			/*
 			 * Se pone a la escucha de posibles mensajes.
 			 */
-			InputStream is = socket.getInputStream();
-			byte buffer[] = new byte[150];
-			is.read(buffer);
-			String s = new String(buffer, 0, buffer.length);
-			System.out.println("Ha recibido(soy el downloader): " + s);
-
+			
+			byte buffer[] = new byte[(int) fileS];
+			socket.getInputStream().read(buffer);
+			//String s = new String(buffer, 0, buffer.length);
+			//System.out.println("Ha recibido(soy el downloader): " + s);
+			
+			File f = new File("a.txt");
+			f.createNewFile();
+			FileOutputStream fos = new FileOutputStream(f);
+			fos.write(buffer);
+			fos.close();
+			
+			/*ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+			Object mensaje = ois.readObject();
+			ois.read((byte[]) mensaje);*/
+			
+			
 
 		} catch (Exception e) {
 			e.printStackTrace();

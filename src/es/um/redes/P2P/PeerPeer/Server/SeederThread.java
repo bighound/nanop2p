@@ -1,12 +1,18 @@
 package es.um.redes.P2P.PeerPeer.Server;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.Socket;
 
 import es.um.redes.P2P.PeerPeer.Message.Message;
+import jdk.management.resource.internal.inst.FileInputStreamRMHooks;
 
 /**
  * Hilo que se ejecuta cada vez que se conecta un nuevo cliente.
@@ -44,11 +50,33 @@ public class SeederThread extends Thread {
 			switch (msg.parseMessage(s)) {
 			case 1: //request_chunk
                 //requestChunks(contenido);
+				
+				/*File dir = new File(folder);
+				// Creamos el archivo destino
+				File file = new File(folder +name);
+				// Abrimos los steams
+				OutputStream out = new FileOutputStream(file);*/
+				
+				/*PrintWriter stdout = new PrintWriter(new FileWriter("archivosSalida"));
+				stdout.println("Hola amiguitos miuos");
+				stdout.close();*/
+				
+				File f = new File("C:\\Users\\Bighound\\Desktop\\Apuntes\\REDES\\NanoP2P\\nanop2p-master\\nanop2p-master\\sharedp2p\\peer1\\a.txt");
+				FileInputStream fis = new FileInputStream(f);
+				
+				long filel = f.length();
+				byte data[] = new byte[(int) filel];
+				fis.read(data);
+				
+				
+				socket.getOutputStream().write(data);
+				fis.close();
+				
 				 m = Message.createMessageSend("Aqui iría el chunk");
-				socket.getOutputStream().write(m.getBytes());
+				//socket.getOutputStream().write(m.getBytes());
 				System.out.println("El seeder ha enviado un send_chunk: "+ m);
                 break;
-           /* case "send_chunk":  
+           /* case "send_chunk": 				 
             	tipo = 2;
                 //sendChunk(contenido);
                 break;*/
