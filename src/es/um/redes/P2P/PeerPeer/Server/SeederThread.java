@@ -73,12 +73,16 @@ public class SeederThread extends Thread {
 
 				//int CHUNK_SIZE = 5 ; // read block size
 				int pos = 0; // calculates the position in the file
-				byte chunk[] = new byte[(int)file.length()];
+				byte chunk[] = new byte[(int)file.length()/2];
 				RandomAccessFile rfi = new RandomAccessFile(file,"r");
 				rfi.seek(pos);
 				rfi.read(chunk);
 				socket.getOutputStream().write(chunk);
-				
+				int pos2 = (int)file.length();
+				byte chunk2[] = new byte[(int)file.length()/2];
+				rfi.seek(pos2);
+				rfi.read(chunk2);
+				socket.getOutputStream().write(chunk2);
 				rfi.close();
 				
 				 m = Message.createMessageSend("Aqui ir�a el chunk");
