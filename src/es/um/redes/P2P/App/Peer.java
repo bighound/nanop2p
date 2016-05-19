@@ -30,7 +30,7 @@ public class Peer {
 
         FileInfo[] fileToSend = new FileInfo[1];
 
-		Seeder seed = new Seeder();
+		Seeder seed = new Seeder(peerSharedFolder);
 		seed.init();
 		
 		// Create client object
@@ -106,7 +106,7 @@ public class Peer {
                 long fileS = fileToSend[0].fileSize;
 				// Crear un objeto downloader
 				Downloader down = new Downloader();
-				down.download(ip, puerto, fileToSend[0].fileHash,fileS);
+				down.download(ip, puerto, fileToSend[0].fileHash,fileS, peerSharedFolder);
 				break;
 
             case "exit":

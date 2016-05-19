@@ -16,8 +16,10 @@ public class Seeder implements Runnable {
 	
     private InetSocketAddress socketAddress;
     private ServerSocket seederSocket = null;
+	String folder;
 
-    public Seeder() {
+    public Seeder(String folder) {
+		this.folder = folder;
     }
 
     /** 
@@ -37,7 +39,7 @@ public class Seeder implements Runnable {
    				// Inicia el hilo de servicio al cliente recién conectado,
    				// enviándole el estado general del servidor y el socket de 
    				// este cliente
-   				new SeederThread(s).start();
+   				new SeederThread(s, folder).start();
    			}
    		} catch (IOException e) {
    			// Do nothing
@@ -71,9 +73,9 @@ public class Seeder implements Runnable {
         return this.socketAddress.getPort();
     }
 
-    public static void main(String[] args)
+    /*public static void main(String[] args)
     {
     	Seeder server = new Seeder();
     	server.init();
-    }
+    }*/
 }

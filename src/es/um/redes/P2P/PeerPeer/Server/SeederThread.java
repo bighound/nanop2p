@@ -20,10 +20,12 @@ import jdk.management.resource.internal.inst.FileInputStreamRMHooks;
  */
 public class SeederThread extends Thread {
 	private Socket socket = null;
+	private String folderName;
 
-	public SeederThread(Socket socket) {
+	public SeederThread(Socket socket, String folder) {
 		super("SeederThread");
 		this.socket = socket;
+		this.folderName = folder;
 	}
 
 	/** FunciÃ³n de los hilos que atienden a los clientes.
@@ -51,34 +53,35 @@ public class SeederThread extends Thread {
 			switch (msg.parseMessage(s)) {
 			case 1: //request_chunk
                 //requestChunks(contenido);
-				
-				
-				
+
+
+
 				/*File f = new File("C:\\Users\\Bighound\\Desktop\\Apuntes\\REDES\\NanoP2P\\nanop2p-master\\nanop2p-master\\sharedp2p\\peer1\\a.txt");
 				FileInputStream fis = new FileInputStream(f);
-				
+
 				long filel = f.length();
 				byte data[] = new byte[(int) filel];
 				fis.read(data);
-				
-				
+
+
 				socket.getOutputStream().write(data);
 				fis.close();*/
-				
-				
-				int CHUNK_SIZE = 5 ; // read block size
-				int pos = 4; // calculates the position in the file
-				byte chunk[] = new byte[CHUNK_SIZE];
-				File file = new File("C:\\Users\\Bighound\\Desktop\\Apuntes\\REDES\\NanoP2P\\nanop2p-master\\nanop2p-master\\sharedp2p\\peer1\\a.txt");
+
+
+
+				File file = new File(this.folderName + "\\a.txt");
+
+				//int CHUNK_SIZE = 5 ; // read block size
+				int pos = 0; // calculates the position in the file
+				byte chunk[] = new byte[(int)file.length()];
 				RandomAccessFile rfi = new RandomAccessFile(file,"r");
 				rfi.seek(pos);
 				rfi.read(chunk);
-				// Do something with data in “chunk”
 				socket.getOutputStream().write(chunk);
 				
 				rfi.close();
 				
-				 m = Message.createMessageSend("Aqui iría el chunk");
+				 m = Message.createMessageSend("Aqui irï¿½a el chunk");
 				//socket.getOutputStream().write(m.getBytes());
 				System.out.println("El seeder ha enviado un send_chunk: "+ m);
                 break;
@@ -86,7 +89,7 @@ public class SeederThread extends Thread {
             	tipo = 2;
                 //sendChunk(contenido);
                 break;*/
-            case 3:  // all_chunks_received Si me envian un all chunks received entonces le envío un mensaje de correcto:
+            case 3:  // all_chunks_received Si me envian un all chunks received entonces le envï¿½o un mensaje de correcto:
             	 m = "OK todo correcto";
 				socket.getOutputStream().write(m.getBytes());
 				System.out.println("El seeder ha enviado un OK: "+ m);

@@ -17,13 +17,15 @@ public class DownloaderThread extends Thread {
 	private Downloader downloader = null;
 	private String fileHash;
 	private long fileS;
+	private String folderName;
 
-	public DownloaderThread(Downloader downloader, Socket socket, String fileHash,long fileS) {
+	public DownloaderThread(Downloader downloader, Socket socket, String fileHash, long fileS, String folder) {
 		super("DowloaderThread");
 		this.socket = socket;
 		this.downloader = downloader;
 		this.fileHash = fileHash;
 		this.fileS = fileS;
+		this.folderName = folder;
 	}
 
 	/** Función de los hilos que atienden a los clientes.
@@ -51,7 +53,7 @@ public class DownloaderThread extends Thread {
 			//String s = new String(buffer, 0, buffer.length);
 			//System.out.println("Ha recibido(soy el downloader): " + s);
 			
-			File f = new File("a.txt");
+			File f = new File(folderName + "\\a.txt");
 			f.createNewFile();
 			FileOutputStream fos = new FileOutputStream(f);
 			fos.write(buffer);

@@ -52,9 +52,6 @@ public class Message {
     // Expresion regular que hace match con un chunk
     // Grupo 2: hash_number
     private String fileNot = "<(send_chunk)>(.*?)</\\1>";
-    
-    // Expresion regular que hace match con data
-    private String data = "<(data)>(.*?)</\\1>";
 
 
     private void requestChunks(String s){
@@ -86,12 +83,8 @@ public class Message {
                                     chunkS + "</chunk></message>");
         return msg;
     }
-    public static String createMessageData (byte[] data){
-    	DatatypeConverter.printBase64Binary(data);
-    	msg = ("<message><operation>"+ data+"</operation></message>");
-  	
-    	return msg;
-    }
+
+    //  DatatypeConverter.printBase64Binary(data);
 
     public static String createMessageSend (String chunk){
         msg = ("<message><operation>send_chunk</operation><send_chunk>" + chunk + "</send_chunk></message>");
