@@ -39,6 +39,7 @@ public class DownloaderThread extends Thread {
 			 * Enviamos el mensaje de Request chunks
 			 */
 			String msg = Message.createMessageRequest(fileHash,1);
+			
 			socket.getOutputStream().write(msg.getBytes());
 
 			/*

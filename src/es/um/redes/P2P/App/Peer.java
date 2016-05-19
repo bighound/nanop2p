@@ -63,8 +63,8 @@ public class Peer {
                 // Enviamos el query files para obtener la lista de ficheros del tracker
                 mensaje = client.sendMsg(Message.OP_QUERY_FILES, localFile);
                 mdf = (MessageDataFileInfo) mensaje;
-                FileInfo[] file;
-                file = mdf.getFileList();
+                FileInfo[] fileList;
+                fileList = mdf.getFileList();	// he cambiado file por fileList por convenio.
 
                 // Comprobamos el uso correcto del comando
                 if (arg.length == 2){
@@ -76,16 +76,27 @@ public class Peer {
 
                 // Comprobamos que el fichero con ese hash está en el tracker.
                 int posicion = -1;
-                for (int i = 0; i < file.length; i++) {
-                    if (file[i].fileHash.equals(hash)) posicion = i;
+                int ambiguo = 0;
+                for (int i = 0; i < fileList.length; i++) {
+                    if (fileList[i].fileHash.contains(hash)) {          // Cambiamos equals por contains
+                    	posicion = i; 
+                    	ambiguo ++;
+                    if (ambiguo==2) posicion =-2;                      // Con esto podemos poner un trozo del hash para descargarnoslo
+               
+                    
+                    }
                 }
                 if (posicion == -1){
                     System.out.println("Hash no encontrado");
                     break;
                 }
+                if (posicion == -2){
+                	System.out.println("Cadena ambigua");
+                	break;
+                }
 
                 // Enviamos el getseeds del hash deseado y obtenemos su IP y puerto
-                fileToSend[0] = file[posicion];
+                fileToSend[0] = fileList[posicion];
 				mensaje = client.sendMsg(Message.OP_GET_SEEDS, fileToSend);
                 mds = (MessageDataSeedInfo) mensaje;
 				InetSocketAddress [] dirs;
@@ -95,7 +106,7 @@ public class Peer {
                 long fileS = fileToSend[0].fileSize;
 				// Crear un objeto downloader
 				Downloader down = new Downloader();
-				down.download(ip, puerto, hash,fileS);
+				down.download(ip, puerto, fileToSend[0].fileHash,fileS);
 				break;
 
             case "exit":

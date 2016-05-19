@@ -29,6 +29,7 @@ package es.um.redes.P2P.PeerPeer.Message;
 
 import java.util.regex.*;
 import java.util.regex.Pattern;
+import javax.xml.bind.DatatypeConverter;
 
 public class Message {
     private static String msg;
@@ -51,6 +52,9 @@ public class Message {
     // Expresion regular que hace match con un chunk
     // Grupo 2: hash_number
     private String fileNot = "<(send_chunk)>(.*?)</\\1>";
+    
+    // Expresion regular que hace match con data
+    private String data = "<(data)>(.*?)</\\1>";
 
 
     private void requestChunks(String s){
@@ -81,6 +85,12 @@ public class Message {
         msg = ("<message><operation>request_chunk</operation><hash>" + hash + "</hash><chunk>" +
                                     chunkS + "</chunk></message>");
         return msg;
+    }
+    public static String createMessageData (byte[] data){
+    	DatatypeConverter.printBase64Binary(data);
+    	msg = ("<message><operation>"+ data+"</operation></message>");
+  	
+    	return msg;
     }
 
     public static String createMessageSend (String chunk){
@@ -113,12 +123,12 @@ public class Message {
 
         switch (tipoOperacion){
             case "request_chunk":
-                //requestChunks(contenido);
+                requestChunks(contenido);
             	tipo=1;
                 break;
             case "send_chunk":
             	tipo = 2;
-                //sendChunk(contenido);
+                sendChunk(contenido);
                 break;
             case "all_chunks_received":
             	tipo = 3;

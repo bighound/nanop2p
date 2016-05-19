@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.net.Socket;
 
 import es.um.redes.P2P.PeerPeer.Message.Message;
@@ -51,17 +52,9 @@ public class SeederThread extends Thread {
 			case 1: //request_chunk
                 //requestChunks(contenido);
 				
-				/*File dir = new File(folder);
-				// Creamos el archivo destino
-				File file = new File(folder +name);
-				// Abrimos los steams
-				OutputStream out = new FileOutputStream(file);*/
 				
-				/*PrintWriter stdout = new PrintWriter(new FileWriter("archivosSalida"));
-				stdout.println("Hola amiguitos miuos");
-				stdout.close();*/
 				
-				File f = new File("C:\\Users\\Bighound\\Desktop\\Apuntes\\REDES\\NanoP2P\\nanop2p-master\\nanop2p-master\\sharedp2p\\peer1\\a.txt");
+				/*File f = new File("C:\\Users\\Bighound\\Desktop\\Apuntes\\REDES\\NanoP2P\\nanop2p-master\\nanop2p-master\\sharedp2p\\peer1\\a.txt");
 				FileInputStream fis = new FileInputStream(f);
 				
 				long filel = f.length();
@@ -70,7 +63,20 @@ public class SeederThread extends Thread {
 				
 				
 				socket.getOutputStream().write(data);
-				fis.close();
+				fis.close();*/
+				
+				
+				int CHUNK_SIZE = 5 ; // read block size
+				int pos = 4; // calculates the position in the file
+				byte chunk[] = new byte[CHUNK_SIZE];
+				File file = new File("C:\\Users\\Bighound\\Desktop\\Apuntes\\REDES\\NanoP2P\\nanop2p-master\\nanop2p-master\\sharedp2p\\peer1\\a.txt");
+				RandomAccessFile rfi = new RandomAccessFile(file,"r");
+				rfi.seek(pos);
+				rfi.read(chunk);
+				// Do something with data in “chunk”
+				socket.getOutputStream().write(chunk);
+				
+				rfi.close();
 				
 				 m = Message.createMessageSend("Aqui iría el chunk");
 				//socket.getOutputStream().write(m.getBytes());
