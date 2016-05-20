@@ -56,7 +56,7 @@ public abstract class Message
 	public static final byte OP_REMOVE_SEED_ACK = 8;
 	
 	/**
-	 * Message opcode.     
+	 * MessageP opcode.
 	 */
 	private byte opCode;
 

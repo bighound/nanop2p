@@ -29,7 +29,7 @@ public class MessageDataSeedInfo extends Message {
  
 
 	/**
-	 * Message opcodes that use the SeedInfo format
+	 * MessageP opcodes that use the SeedInfo format
 	 */
 	private static final Byte[] _dataseed_opcodes = {
 			OP_GET_SEEDS, 

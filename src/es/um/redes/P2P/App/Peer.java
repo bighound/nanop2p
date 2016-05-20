@@ -1,10 +1,7 @@
 package es.um.redes.P2P.App;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.Scanner;
 
 
@@ -54,9 +51,14 @@ public class Peer {
             //query, download, exit
 			switch (arg[0]) {
 			case "query":
-				System.out.println((client.sendMsg(Message.OP_ADD_SEED, localFile)).toString());
+				System.out.println(client.sendMsg(Message.OP_ADD_SEED, localFile));
 				mensaje = client.sendMsg(Message.OP_QUERY_FILES, localFile);
-				System.out.println(mensaje.toString());
+				mdf = (MessageDataFileInfo) mensaje;
+				System.out.println(mdf.toString());
+				FileInfo[] filesTracker = mdf.getFileList();
+				// En filesTracker tengo las del tracker, en fileinfo las del peer
+
+				//System.out.println(mensaje.toString());
                 break;
 
 			case "download":
@@ -105,8 +107,13 @@ public class Peer {
                 int puerto = dirs[0].getPort();
                 long fileS = fileToSend[0].fileSize;
 				// Crear un objeto downloader
+
+
+				System.out.println(fileToSend[0].fileName);
+
 				Downloader down = new Downloader();
-				down.download(ip, puerto, fileToSend[0].fileHash,fileS, peerSharedFolder);
+				down.download(ip, puerto, fileToSend[0],peerSharedFolder);
+
 				break;
 
             case "exit":

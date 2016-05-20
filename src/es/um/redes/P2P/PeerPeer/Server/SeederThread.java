@@ -12,7 +12,6 @@ import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.net.Socket;
 
-import es.um.redes.P2P.PeerPeer.Message.Message;
 import jdk.management.resource.internal.inst.FileInputStreamRMHooks;
 
 /**
@@ -34,7 +33,7 @@ public class SeederThread extends Thread {
 	public void run() {
 		try {
 			// Recibo de datos
-			Message msg = new Message();
+			//MessageP msg = new MessageP();
 			byte[] buffer = new byte[150];
 			InputStream is = socket.getInputStream();
 			is.read(buffer);
@@ -50,7 +49,7 @@ public class SeederThread extends Thread {
 			
 			OutputStream os = socket.getOutputStream();
 			String m;
-			switch (msg.parseMessage(s)) {
+			switch (0) {
 			case 1: //request_chunk
                 //requestChunks(contenido);
 
@@ -85,9 +84,9 @@ public class SeederThread extends Thread {
 				socket.getOutputStream().write(chunk2);
 				rfi.close();
 				
-				 m = Message.createMessageSend("Aqui ir�a el chunk");
+				//m = MessageP.createMessageSend("Aqui ir�a el chunk");
 				//socket.getOutputStream().write(m.getBytes());
-				System.out.println("El seeder ha enviado un send_chunk: "+ m);
+				//System.out.println("El seeder ha enviado un send_chunk: "+ m);
                 break;
            /* case "send_chunk": 				 
             	tipo = 2;
@@ -100,9 +99,9 @@ public class SeederThread extends Thread {
                 // Señal todos recibidos
                 break;
             case 4:   //File not found
-            	m = Message.createMessageNot("Este es un hash");
-				socket.getOutputStream().write(m.getBytes());
-				System.out.println("File no encontrado: "+ m);
+            	//m = MessageP.createMessageNot("Este es un hash");
+				//socket.getOutputStream().write(m.getBytes());
+				//System.out.println("File no encontrado: "+ m);
                 //fileNotFound(contenido);
                 break;
             default:
@@ -113,11 +112,11 @@ public class SeederThread extends Thread {
 			
 			
 			/*OutputStream os = socket.getOutputStream();
-			Message m = new Message();
+			MessageP m = new MessageP();
 			m.createMessageSend(s);
 			DataOutputStream dos = new DataOutputStream(os);
-			dos.writeChars(Message.createMessageSend(s));
-			//String m = Message.createMessageRequest(fileHash, 1);
+			dos.writeChars(MessageP.createMessageSend(s));
+			//String m = MessageP.createMessageRequest(fileHash, 1);
 			//socket.getOutputStream().write(m.toString());
 			System.out.println("Ha enviado: " + m);
 			//socket.getOutputStream().write(m.getBytes());

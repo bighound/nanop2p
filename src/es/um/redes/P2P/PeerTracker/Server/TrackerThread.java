@@ -8,7 +8,7 @@ import es.um.redes.P2P.PeerTracker.Message.Message;
 import es.um.redes.P2P.PeerTracker.Message.MessageControl;
 import es.um.redes.P2P.PeerTracker.Message.MessageDataFileInfo;
 import es.um.redes.P2P.PeerTracker.Message.MessageDataSeedInfo;
-//import es.um.redes.P2P.PeerTracker.Message.ProtocolState;
+//import es.um.redes.P2P.PeerTracker.MessageP.ProtocolState;
 import es.um.redes.P2P.util.FileInfo;
 
 

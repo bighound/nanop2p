@@ -33,7 +33,7 @@ public class MessageDataFileInfo extends Message {
 	private static final int FIELD_FILENAMELEN_BYTES = Integer.SIZE / 8;
 
 	/**
-	 * Message opcodes that use the FileInfo format
+	 * MessageP opcodes that use the FileInfo format
 	 */
 	private static final Byte[] _datafile_opcodes = {
 			OP_ADD_SEED, 
@@ -52,7 +52,7 @@ public class MessageDataFileInfo extends Message {
 	
 	/**
 	 * Constructor used by client peer when creating message requests for sending.
-	 * @param opCode Message type
+	 * @param opCode MessageP type
 	 * @param fileList List of files
 	 */
 	public MessageDataFileInfo(byte opCode, int port, FileInfo[] fileList) {

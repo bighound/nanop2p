@@ -84,14 +84,14 @@ public class Reporter extends Thread {
 		try {
 			// Apartado a
 			System.out.println("-----Apartado a-----");
-			Message messagea = sendMsg(Message.OP_ADD_SEED, localFile);
+			MessageP messagea = sendMsg(MessageP.OP_ADD_SEED, localFile);
 			// Devuelve un mensaje ADD_SEDD_ACK
 			System.out.println(messagea.toString() + "\n");
 			
 			
 			// Apartado b
 			System.out.println("-----Apartado b-----");
-			Message messageb = sendMsg(Message.OP_QUERY_FILES, localFile);
+			MessageP messageb = sendMsg(MessageP.OP_QUERY_FILES, localFile);
 			// Devuelve un mensaje LIST_FILES
 			System.out.println(messageb.toString() + "\n");
 			
@@ -99,7 +99,7 @@ public class Reporter extends Thread {
 			System.out.println("-----Apartado c-----");
 			FileInfo[] filec = new FileInfo[1];
 			filec[0] = localFile[0];
-			Message messagec = sendMsg(Message.OP_GET_SEEDS, filec);
+			MessageP messagec = sendMsg(MessageP.OP_GET_SEEDS, filec);
 			// Devuelve un mensaje SEED_LIST
 			System.out.println(messagec.toString() + "\n");
 			
@@ -107,10 +107,10 @@ public class Reporter extends Thread {
 			System.out.println("-----Apartado d-----");
 			FileInfo[] filed = new FileInfo[1];
 			filed[0] = localFile[0];
-			Message messaged = sendMsg(Message.OP_REMOVE_SEED, filed);
+			MessageP messaged = sendMsg(MessageP.OP_REMOVE_SEED, filed);
 			System.out.println(messaged.toString() + "\n");
 			// Comprobamos que se ha borrado
-			Message messagedq = sendMsg(Message.OP_QUERY_FILES, localFile);		
+			MessageP messagedq = sendMsg(MessageP.OP_QUERY_FILES, localFile);
 			System.out.println(messagedq.toString() + "\n");
 			
 		} catch (IOException e) {
