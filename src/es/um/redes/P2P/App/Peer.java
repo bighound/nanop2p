@@ -7,6 +7,7 @@ import java.util.Scanner;
 
 import es.um.redes.P2P.PeerPeer.Client.Downloader;
 import es.um.redes.P2P.PeerPeer.Server.Seeder;
+//import es.um.redes.P2P.PeerPeer.Server.SeederThread;
 import es.um.redes.P2P.PeerTracker.Client.Reporter;
 import es.um.redes.P2P.PeerTracker.Message.Message;
 import es.um.redes.P2P.PeerTracker.Message.MessageDataFileInfo;
@@ -14,6 +15,7 @@ import es.um.redes.P2P.PeerTracker.Message.MessageDataSeedInfo;
 import es.um.redes.P2P.util.FileInfo;
 
 public class Peer {
+	public static FileInfo localfiles[];
 	public static void main(String[] args) throws IOException {
 		if (args.length != 2) {
 			System.out.println("Usage: java Peer <tracker_hostname> <local_shared_folder>");
@@ -23,10 +25,11 @@ public class Peer {
 		String peerSharedFolder = args[1];
 		Boolean continua = true;
 		String hash=null;
-		String hashQF=null;
+		
 
         FileInfo[] fileToSend = new FileInfo[1];
-
+        FileInfo[] localFile = FileInfo.loadFilesFromFolder(peerSharedFolder);
+  
 		Seeder seed = new Seeder(peerSharedFolder);
 		seed.init();
 		
@@ -36,11 +39,11 @@ public class Peer {
 		// Start client thread
 		client.start();
 		
-		FileInfo[] localFile = FileInfo.loadFilesFromFolder(peerSharedFolder);
+		Scanner scan=null;
 		
 		System.out.println("Comandos: query, download, exit");
 		while (continua) {
-			Scanner scan = new Scanner(System.in);
+			scan = new Scanner(System.in);
 			String entrada = scan.nextLine();
 			String [] arg = entrada.split("\\s+");
 			Message mensaje;
@@ -56,6 +59,7 @@ public class Peer {
 				mdf = (MessageDataFileInfo) mensaje;
 				System.out.println(mdf.toString());
 				FileInfo[] filesTracker = mdf.getFileList();
+				Peer.localfiles=filesTracker;
 				// En filesTracker tengo las del tracker, en fileinfo las del peer
 
 				//System.out.println(mensaje.toString());
@@ -105,12 +109,10 @@ public class Peer {
 				dirs = mds.getSeedList();
                 String ip = dirs[0].getAddress().toString().substring(1);
                 int puerto = dirs[0].getPort();
-                long fileS = fileToSend[0].fileSize;
 				// Crear un objeto downloader
 
 
-				System.out.println(fileToSend[0].fileName);
-
+				
 				Downloader down = new Downloader();
 				down.download(ip, puerto, fileToSend[0],peerSharedFolder);
 
@@ -127,7 +129,7 @@ public class Peer {
 			}
 		}
 		
-		
+		scan.close();
 		
 		
 		

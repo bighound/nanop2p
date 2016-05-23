@@ -1,6 +1,6 @@
 package es.um.redes.P2P.PeerPeer.Client;
 
-import es.um.redes.P2P.PeerPeer.MessageP.MessageP;
+//import es.um.redes.P2P.PeerPeer.MessageP.MessageP;
 import es.um.redes.P2P.util.FileInfo;
 
 import java.io.*;
@@ -8,7 +8,7 @@ import java.net.*;
 
 public class Downloader {
 
-	private final int CHUNK_SIZE = 1024;
+	public final static int CHUNK_SIZE = 1024;
 	
 	// Aqui hay que implementar la sincronizacion entre los trozos que descargan los peer
 	// para que no haya conflictos y varios peer no accedan al mismo trozo
@@ -19,7 +19,8 @@ public class Downloader {
 		Socket socket = new Socket(peerAddress, peerPort);
 
 		// Comprobar que chunk=0
-		int chunksNumber = (int) file.fileSize/CHUNK_SIZE;
+		int nChunks = (int) file.fileSize/CHUNK_SIZE;
+		if (file.fileSize%CHUNK_SIZE!=0) nChunks++;
 
 		// Ya tenemos el numero de chunks en los que se divide el archivo deseado
 		// Hay que crear tantos downloaderThread como seeders existan.
@@ -31,7 +32,7 @@ public class Downloader {
 
 
 
-		DownloaderThread dt = new DownloaderThread(this,socket,file,folder);
+		DownloaderThread dt = new DownloaderThread(this,socket,file,folder,nChunks);
 		dt.start();
 
 

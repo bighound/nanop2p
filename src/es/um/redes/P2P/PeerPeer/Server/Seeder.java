@@ -5,6 +5,8 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+//import es.um.redes.P2P.util.FileInfo;
+
 /**
  * Servidor que se ejecuta en un hilo propio.
  * Creará objetos {@link SeederThread} cada vez que se conecte un cliente.
@@ -17,6 +19,7 @@ public class Seeder implements Runnable {
     private InetSocketAddress socketAddress;
     private ServerSocket seederSocket = null;
 	String folder;
+	
 
     public Seeder(String folder) {
 		this.folder = folder;
@@ -26,6 +29,7 @@ public class Seeder implements Runnable {
 	 * Función del hilo principal del servidor. 	
 	 * @see java.lang.Runnable#run()
 	 */
+    
 	public void run()
 	{
    		try {
@@ -46,7 +50,12 @@ public class Seeder implements Runnable {
    		}
 	}
     
-    /**
+   
+    
+
+
+
+	/**
      * Inicio del hilo del servidor.
      */
     public void init(){

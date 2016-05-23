@@ -41,53 +41,87 @@ public abstract class MessageP {
     // Grupo 2: operation
     // Grupo 3: tipo de operacion
     // Grupo 4: contenido del mensaje a partir de la operacion
-    private static String mensaje = "<(message)>\\s*?<(operation)>(.*?)</\\2>((.|\\s)*?)</\\1>";
+    //private static String mensaje = "<(message)>\\s*?<(operation)>(.*?)</\\2>((.|\\s)*?)</\\1>";
+	private static String mensaje = "<(message)><(operation)>(.*?)</\\2>(.*?)</\\1>";
     // Expresion regular que hace match con un hash
     // Grupo 2: hash number
     // Grupo 4: chunk_number
-    private String reqChunks = "<(hash)>(.*?)</\\1>\\s*?<(chunk)>(.*?)</\\3>";
+    private static String reqChunks = "<(hash)>(.*?)</\\1>\\s*?<(chunk)>(.*?)</\\3>";
 
     // Expresion regular que hace match con un numero de chunk
     // Grupo 2: chunk
-    // Falta chunk_number
-    private String sndChunk = "<(send_chunk)>(.*?)</\\1>";
+    // Falta chunk_number .ya no falta
+    private static String sndChunk = "<(send_chunk)>(.*?)</\\1><(chunk)>(.*?)</\\3>";  
 
     // Expresion regular que hace match con un chunk
     // Grupo 2: hash_number
-    private String fileNot = "<(send_chunk)>(.*?)</\\1>";
+    //private static String fileNot = "<(send_chunk)>(.*?)</\\1>";
 
-    private String hash;
-    private int chunkNumber;
-    private String chunk;
-
-
-    private void requestChunks(String s){
-        Pattern p = Pattern.compile(reqChunks);
-        Matcher m = p.matcher(s);
-        m.find();
-        this.hash = m.group(2);
-        this.chunkNumber = Integer.parseInt(m.group(4));
+    private static String hash;
+    private static int chunkNumber;
+    private static byte[] chunk;
+    private static String msg;
+    private static String chunkToString;
 
 
+	public static String getHash() {
+		return hash;
+	}
+
+	public static byte[] getChunk() {
+		return chunk;
+	}
+
+	public static int getChunkNumber() {
+		return chunkNumber;
+	}
+
+
+	//private static void requestChunks(String s){}
+
+    public static void sendChunk(String s){
+        
     }
 
-    private void sendChunk(String s){
-        Pattern p = Pattern.compile(sndChunk);
-        Matcher m = p.matcher(s);
-        m.find();
-        this.chunk = m.group(2);
-    }
-
-    private void fileNotFound(String s){
+   /* private static void fileNotFound(String s){ ************************************************************************  Falta esto
         Pattern p = Pattern.compile(fileNot);
         Matcher m = p.matcher(s);
         m.find();
-        String fileHash = m.group(2);
+        hash = m.group(2);
+    }*/
+
+
+    public static String createMessageRequest (String hash, int chunk){
+        String chunkS = chunk + "";
+        msg = ("<message><operation>request_chunk</operation><hash>" + hash + "</hash><chunk>" +
+                                    chunkS + "</chunk></message>\n");
+        return msg;
     }
 
+    //  
 
+    public static String createMessageSend (byte[] data,int chunkNumber){//byte[] data
+    	String chunk;
+    	chunk=DatatypeConverter.printBase64Binary(data);
+    	
+        msg = ("<message><operation>send_chunk</operation><send_chunk>" + chunk + "</send_chunk><chunk>" +
+                                    chunkNumber + "</chunk></message>\n");
+        return msg;
+    }
 
-    public static MessageP parseResponse(String m){
+    public static String createMessageAll (){
+        msg = ("<message><operation>all_chunks_received</operation></message>\n");
+        return msg;
+    }
+
+    public static String createMessageNot (String hash){
+        msg =("<message><operation>file_not_found</operation><hash>" + hash + "</hash></message>\n");
+        return msg;
+    }
+    static Pattern p;
+    static Matcher mat;
+    
+    public static int parseResponse(String m){
         Pattern pat = Pattern.compile(mensaje);
         Matcher mat = pat.matcher(m);
         if (!mat.find()){
@@ -98,18 +132,39 @@ public abstract class MessageP {
 
         switch (tipoOperacion){
             case "request_chunk":
-                return new MessagePRequestChunk(contenido);
+            	p = Pattern.compile(reqChunks);
+                mat = p.matcher(contenido);
+                mat.find();
+                hash = mat.group(2);
+                chunkNumber = Integer.parseInt(mat.group(4));
+                //System.out.println("Esto es un requestChunk");
+                
+                return 1;
+                
             case "send_chunk":
-                return new MessagePSendChunk(contenido);
+            	 p = Pattern.compile(sndChunk);
+                mat = p.matcher(contenido);
+                mat.find();  
+                chunkNumber = Integer.parseInt(mat.group(4));
+                chunkToString = mat.group(2);
+                chunk=DatatypeConverter.parseBase64Binary(chunkToString);
+                //System.out.println("efectivamente se ha encontrado con el chunk: "+chunkToString+"y el chunk number"+chunkNumber);
+                
+                //sendChunk(contenido);
+                return 2;
+                
+                
             case "all_chunks_received":
-                return new MessagePAllChunksReceived();
+            	System.out.println("-----------------All chunks have been received-----------------");
+            	return 3;
             case "file_not_found":
-                return new MessagePFileNotFound(contenido);
+                
+                break;
             default:
                 System.out.println("Mensaje con formato no correcto");
-                return null;
+                return 5;
         }
-        // return true;
+        return -1;
     }
 
 
@@ -155,31 +210,9 @@ public abstract class MessageP {
         m.find();
         String fileHash = m.group(2);
     }
-
-    public static String createMessageRequest (String hash, int chunk){
-        String chunkS = chunk + "";
-        msg = ("<message><operation>request_chunk</operation><hash>" + hash + "</hash><chunk>" +
-                                    chunkS + "</chunk></message>");
-        return msg;
-    }
-
-    //  DatatypeConverter.printBase64Binary(data);
-
-    public static String createMessageSend (String chunk){
-        msg = ("<message><operation>send_chunk</operation><send_chunk>" + chunk + "</send_chunk></message>");
-        return msg;
-    }
-
-    public static String createMessageAll (){
-        msg = ("<message><operation>all_chunks_received</operation></message>");
-        return msg;
-    }
-
-    public static String createMessageNot (String hash){
-        msg =("<message><operation>file_not_found</operation><hash>" + hash + "</hash></message>");
-        return msg;
-    }
-
+	*/
+    
+/*
 
 
     public int parseMessage(String m){

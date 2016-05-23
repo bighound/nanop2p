@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
-import java.net.SocketException;
+//import java.net.SocketException;
 
 import es.um.redes.P2P.PeerTracker.Message.Message;
 import es.um.redes.P2P.util.FileInfo;
@@ -27,6 +27,7 @@ public class Reporter extends Thread {
 	 * Constructor: 
 	 * @param sharedFolder Path to the shared folder of this peer, relative to $HOME
 	 */
+	
 	public Reporter(String name, String sharedFolder, String tracker, int port) {
 		super(name);
 		//Use getProperty("user.home") instead of System.getenv("HOME") for platform independent code
@@ -41,6 +42,10 @@ public class Reporter extends Thread {
 		seedPort = port;
 	}
 	
+	public String getSharedFolderPath() {
+		return sharedFolderPath;
+	}
+
 	public Message sendMsg(byte requestOpcode, FileInfo[] file) throws IOException{
 		// Abrimos el socket
 		DatagramSocket socket = new DatagramSocket();
