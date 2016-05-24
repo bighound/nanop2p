@@ -45,16 +45,23 @@ public class SeederThread extends Thread {
 				switch (received.parseResponse(s)) {
 					case REQUEST_CHUNK:
 						chunkNumber = received.getChunkNumber();
+						int fileSize = 0;
 						for (int i = 0; i < Peer.localfiles.length; i++) {
 							if(Peer.localfiles[i].fileHash.equals(received.getHash())){
 								localname=Peer.localfiles[i].fileName;
+								fileSize = (int) Peer.localfiles[i].fileSize;
 							}
 						}
+						int numChunks = fileSize/Downloader.CHUNK_SIZE;
+						int restante = fileSize % Downloader.CHUNK_SIZE;
+						int byteSize;
+						if(chunkNumber == numChunks) byteSize = restante;
+						else byteSize = Downloader.CHUNK_SIZE;
+
 
 						File file = new File(this.folderName + "\\"+localname);
-
 						int pos = chunkNumber*Downloader.CHUNK_SIZE; // calculates the position in the file
-						byte chunk[] = new byte[Downloader.CHUNK_SIZE];
+						byte chunk[] = new byte[byteSize];
 						RandomAccessFile rfi = new RandomAccessFile(file,"r");
 						rfi.seek(pos);
 						rfi.read(chunk);
@@ -63,7 +70,7 @@ public class SeederThread extends Thread {
 						MessageP enviar = new MessageP(MessageCode.SEND_CHUNK, null, chunkNumber, chunk);
 						DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
 						dos.writeUTF(enviar.toString());
-						//System.out.println("Ha enviado el chunkNumber: "+chunkNumber);
+
 						System.out.println("Lleva enviado : " + (pos+Downloader.CHUNK_SIZE));
 
 						break;
@@ -74,14 +81,15 @@ public class SeederThread extends Thread {
 						AudioStream audio = new AudioStream(in);
 						AudioPlayer.player.start(audio);
 						all_chunks_received=true;
+						socket.close();
 						break;
 
 					case FILE_NOT_FOUND:   //File not found
 						//m = MessageP.createMessageNot("Este es un hash");
-						//socket.getOutputStream().write(m.getBytes());
-						//System.out.println("File no encontrado: "+ m);
-						//fileNotFound(contenido);
-					break;
+						MessageP notFound = new MessageP(MessageCode.FILE_NOT_FOUND, null, -1, null);
+						DataOutputStream tres = new DataOutputStream(socket.getOutputStream());
+						tres.writeUTF(notFound.toString());
+						break;
 					default:
 						System.out.println("Mensaje con formato no correcto");
 						break;

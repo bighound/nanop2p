@@ -27,6 +27,7 @@ public class DownloaderThread extends Thread {
 	private Socket socket = null;
 	private Downloader downloader = null;
 	private FileInfo file;
+	private long fileLength;
 	private String folderName;
 	private boolean fin;
 	private Semaphore mutex;
@@ -39,6 +40,7 @@ public class DownloaderThread extends Thread {
 		this.folderName = folder;
 		this.fin = false;
 		this.mutex = mut;
+		this.fileLength = file.fileSize;
 	}
 
 	private int getNextChunk() throws InterruptedException {
@@ -79,6 +81,8 @@ public class DownloaderThread extends Thread {
 				switch (received.parseResponse(s)){
 					case SEND_CHUNK:
 						int numero = received.getChunkNumber();
+						byte [] chunkData = received.getChunk();
+
 						int pos =numero*Downloader.CHUNK_SIZE;
 						File f = new File(folderName + "\\" + file.fileName);
 						if (!f.exists()) {
@@ -86,8 +90,13 @@ public class DownloaderThread extends Thread {
 						}
 						RandomAccessFile rfo = new RandomAccessFile(f, "rw");
 						rfo.seek(pos);
-						rfo.write(received.getChunk(), 0, Downloader.CHUNK_SIZE);
+						rfo.write(chunkData, 0, chunkData.length);
 						rfo.close();
+						break;
+					case FILE_NOT_FOUND:
+						fin=true;
+						System.out.println("Fichero no encontrado");
+						break;
 				}
 
 			}
