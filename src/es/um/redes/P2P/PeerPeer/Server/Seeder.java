@@ -5,8 +5,6 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-//import es.um.redes.P2P.util.FileInfo;
-
 /**
  * Servidor que se ejecuta en un hilo propio.
  * Creará objetos {@link SeederThread} cada vez que se conecte un cliente.

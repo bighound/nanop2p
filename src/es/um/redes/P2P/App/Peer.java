@@ -12,6 +12,7 @@ import es.um.redes.P2P.PeerTracker.Client.Reporter;
 import es.um.redes.P2P.PeerTracker.Message.Message;
 import es.um.redes.P2P.PeerTracker.Message.MessageDataFileInfo;
 import es.um.redes.P2P.PeerTracker.Message.MessageDataSeedInfo;
+import es.um.redes.P2P.PeerTracker.Message.ProtocolState;
 import es.um.redes.P2P.util.FileInfo;
 
 public class Peer {
@@ -38,7 +39,7 @@ public class Peer {
 
 		// Start client thread
 		client.start();
-		
+
 		Scanner scan=null;
 		
 		System.out.println("Comandos: query, download, exit");
@@ -54,6 +55,7 @@ public class Peer {
             //query, download, exit
 			switch (arg[0]) {
 			case "query":
+				localFile  = FileInfo.loadFilesFromFolder(peerSharedFolder);
 				System.out.println(client.sendMsg(Message.OP_ADD_SEED, localFile));
 				mensaje = client.sendMsg(Message.OP_QUERY_FILES, localFile);
 				mdf = (MessageDataFileInfo) mensaje;
@@ -61,8 +63,6 @@ public class Peer {
 				FileInfo[] filesTracker = mdf.getFileList();
 				Peer.localfiles=filesTracker;
 				// En filesTracker tengo las del tracker, en fileinfo las del peer
-
-				//System.out.println(mensaje.toString());
                 break;
 
 			case "download":
@@ -87,16 +87,13 @@ public class Peer {
                     if (fileList[i].fileHash.contains(hash)) {          // Cambiamos equals por contains
                     	posicion = i; 
                     	ambiguo ++;
-                    if (ambiguo==2) posicion =-2;                      // Con esto podemos poner un trozo del hash para descargarnoslo
-               
-                    
+					 	if (ambiguo==2) posicion =-2;                      // Con esto podemos poner un trozo del hash para descargarnoslo
                     }
                 }
                 if (posicion == -1){
                     System.out.println("Hash no encontrado");
                     break;
-                }
-                if (posicion == -2){
+                }else if (posicion == -2){
                 	System.out.println("Cadena ambigua");
                 	break;
                 }
@@ -107,19 +104,16 @@ public class Peer {
                 mds = (MessageDataSeedInfo) mensaje;
 				InetSocketAddress [] dirs;
 				dirs = mds.getSeedList();
-                String ip = dirs[0].getAddress().toString().substring(1);
-                int puerto = dirs[0].getPort();
 				// Crear un objeto downloader
-
-
-				
 				Downloader down = new Downloader();
-				down.download(ip, puerto, fileToSend[0],peerSharedFolder);
+				down.download(dirs, fileToSend[0],peerSharedFolder);
 
 				break;
 
             case "exit":
 				continua=false;
+				localFile = FileInfo.loadFilesFromFolder(peerSharedFolder);
+				client.sendMsg(Message.OP_REMOVE_SEED, localFile);
 				System.out.println("Fin del proceso del peer");
 				break;
 			default:

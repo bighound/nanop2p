@@ -1,0 +1,169 @@
+package ejercicio2;
+
+import messagepassing.MailBox;
+import messagepassing.Selector;
+
+/**
+ * Created by Jorge Gallego Madrid on 09/05/2016.
+ */
+
+/**
+ * Clase que gestiona el buffer
+ */
+class HiloControlador extends Thread{
+
+    // MailBox para comunicarse con el generador y el recolector
+    private MailBox gen, col;
+    // Selector
+    private Selector sel;
+    // MailBox para recibir peticiones de los multiplos
+    private MailBox recvNum2, recvNum3, recvNum5;
+    // MailBox para enviar numeros a los multiplos
+    private MailBox sendNum2, sendNum3, sendNum5;
+    // Buffer donde se depositan y leen los numeros
+    private int [] sharedBuffer;
+
+    /**
+     * Constructor
+     * @param gen MailBox para comunicarse con el generador
+     * @param col MailBox para comunicarse con el recolector
+     * @param recvNum2 MailBox donde va a enviar los numeros del hilo multiplo 2
+     * @param sendNum2 MailBox donde va a recibir las peticiones del hilo multiplo 2
+     * @param recvNum3 MailBox donde va a enviar los numeros del hilo multiplo 3
+     * @param sendNum3 MailBox donde va a recibir las peticiones del hilo multiplo 3
+     * @param recvNum5 MailBox donde va a enviar los numeros del hilo multiplo 5
+     * @param sendNum5 MailBox donde va a recibir las peticiones del hilo multiplo 5
+     */
+    HiloControlador(MailBox gen, MailBox col, MailBox recvNum2, MailBox sendNum2,
+                    MailBox recvNum3, MailBox sendNum3, MailBox recvNum5, MailBox sendNum5){
+        this.gen = gen;
+        this.col = col;
+
+        this.sharedBuffer = new int[Main.SHARED_BUFFER_SIZE];
+
+        this.recvNum2 = sendNum2;
+        this.sendNum2 = recvNum2;
+        this.recvNum3 = sendNum3;
+        this.sendNum3 = recvNum3;
+        this.recvNum5 = sendNum5;
+        this.sendNum5 = recvNum5;
+
+        this.sel = new Selector();
+
+        // Añadimos en el orden correcto las condiciones de seleccion, todas a false porque reciben
+        this.sel.addSelectable(this.gen, false);
+        this.sel.addSelectable(this.col, false);
+        this.sel.addSelectable(this.recvNum2, false);
+        this.sel.addSelectable(this.recvNum3, false);
+        this.sel.addSelectable(this.recvNum5, false);
+    }
+
+    @Override
+    /**
+     * Metodo run heredado de la clase Thread donde se realiza el algoritmo del hilo.
+     */
+    public void run() {
+        // Entero para llevar la cuenta de los huecos que hay en el buffer
+        int emptySlotsBuff = 10;
+        // Entero para controlar la posicion en la que inserta el generador
+        int numSlot = 0;
+        // Entero para controlar la posicion que limpia el recolector
+        int cleaner = 0;
+        // Entero donde se recibiran los numeros
+        int received;
+        // Array donde se lleva la cuenta de los hilos mult que quedan por usar el numero de esa posicion
+        int [] slotToMult = new int[10];
+        for (int i = 0; i < 10; i++) {
+            slotToMult[i] = Main.MULT_THREAD_NUMBER;
+        }
+        // Numero de enteros que le quedan por ver a cada hilo mult
+        int [] numAvailable = new int[Main.MULT_THREAD_NUMBER];
+        for (int i = 0; i < Main.MULT_THREAD_NUMBER; i++) {
+            numAvailable[i] = 0;
+        }
+
+        // En total hay que hacer 50000 iteraciones, 10000 por cada hilo controlado
+        for (int i = 0; i < 50000; i++) {
+            // Condicion: si hay huecos libres en el buffer
+            gen.setGuardValue(emptySlotsBuff > 0);
+            // Condicion: si el numero en la posicion cleaner ha sido ya usado por los hilos
+            col.setGuardValue(slotToMult[cleaner] == 0);
+            // Condicion: si hilo multiplo 2 tiene numeros nuevos por leer
+            recvNum2.setGuardValue(numAvailable[0] > 0);
+            // Condicion: si hilo multiplo 3 tiene numeros nuevos por leer
+            recvNum3.setGuardValue(numAvailable[1] > 0);
+            // Condicion: si hilo multiplo 5 tiene numeros nuevos por leer
+            recvNum5.setGuardValue(numAvailable[2] > 0);
+
+            // Hacemos el select
+            int caseNum = sel.selectOrBlock();
+            switch (caseNum){
+                case 1:
+                    // Recibimos el numero generado
+                    received = (int) gen.receive();
+                    // Se inserta en el buffer
+                    sharedBuffer[numSlot] = received;
+                    // Indicamos que hay un hueco menos
+                    emptySlotsBuff--;
+                    // Actualizamos el valor de numSlot
+                    if(numSlot+1 == 10) numSlot = 0;
+                    else numSlot++;
+                    // Comunicamos a los hilos que hay un numero nuevo
+                    for (int j = 0; j < 3; j++) {
+                        numAvailable[j]++;
+                    }
+                    break;
+                case 2:
+                    // Recibimos la posicion a limpiar
+                    received = (int) col.receive();
+                    // Limpiamos la posicion
+                    sharedBuffer[received] = -1;
+                    // Actualizamos el valor la posicion en el array de pendientes
+                    slotToMult[cleaner] = Main.MULT_THREAD_NUMBER;
+                    // Indicamos que hay un nuevo hueco
+                    emptySlotsBuff++;
+                    // Actualizamos el valor de cleaner
+                    if(cleaner+1 == 10) cleaner = 0;
+                    else cleaner++;
+                    break;
+                case 3:
+                    // Recibimos la posicion de la que se desea leer el numero
+                    received = (int) recvNum2.receive();
+                    //Mandamos el numero de la posicion
+                    sendNum2.send(sharedBuffer[received]);
+                    // Indicamos que ya se ha leido el numero
+                    slotToMult[received]--;
+                    // Decrementamos el contador de numeros no vistos
+                    numAvailable[0]--;
+                    break;
+                case 4:
+                    // Recibimos la posicion de la que se desea leer el numero
+                    received = (int) recvNum3.receive();
+                    //Mandamos el numero de la posicion
+                    sendNum3.send(sharedBuffer[received]);
+                    // Indicamos que ya se ha leido el numero
+                    slotToMult[received]--;
+                    // Decrementamos el contador de numeros no vistos
+                    numAvailable[1]--;
+                    break;
+                case 5:
+                    // Recibimos la posicion de la que se desea leer el numero
+                    received = (int) recvNum5.receive();
+                    //Mandamos el numero de la posicion
+                    sendNum5.send(sharedBuffer[received]);
+                    // Indicamos que ya se ha leido el numero
+                    slotToMult[received]--;
+                    // Decrementamos el contador de numeros no vistos
+                    numAvailable[2]--;
+                    break;
+            }
+
+        }
+
+
+
+
+
+
+    }
+}

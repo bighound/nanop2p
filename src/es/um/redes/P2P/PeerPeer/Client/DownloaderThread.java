@@ -1,9 +1,11 @@
 package es.um.redes.P2P.PeerPeer.Client;
 
 //import es.um.redes.P2P.PeerPeer.Message.Message;
+import es.um.redes.P2P.PeerPeer.MessageP.MessageCode;
 import es.um.redes.P2P.PeerPeer.MessageP.MessageP;
 //import es.um.redes.P2P.PeerPeer.Server.Seeder;
 //import es.um.redes.P2P.PeerPeer.Server.SeederThread;
+import es.um.redes.P2P.PeerTracker.Message.Message;
 import es.um.redes.P2P.util.FileInfo;
 import es.um.redes.P2P.PeerPeer.Client.Downloader;
 import java.io.BufferedReader;
@@ -15,6 +17,7 @@ import java.io.InputStreamReader;
 //import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.Socket;
+import java.util.concurrent.Semaphore;
 
 //import com.sun.org.apache.bcel.internal.generic.AALOAD;
 
@@ -25,21 +28,34 @@ public class DownloaderThread extends Thread {
 	private Downloader downloader = null;
 	private FileInfo file;
 	private String folderName;
-	private int nChunks;
+	private boolean fin;
+	private Semaphore mutex;
 
-	public DownloaderThread(Downloader downloader, Socket socket, FileInfo file, String folder,int nChunks) {
+	DownloaderThread(Downloader downloader, Socket socket, FileInfo file, String folder,Semaphore mut) {
 		super("DowloaderThread");
 		this.socket = socket;
 		this.downloader = downloader;
 		this.file = file;
 		this.folderName = folder;
-		this.nChunks=nChunks;
+		this.fin = false;
+		this.mutex = mut;
 	}
-	int i = 0;
-	
-	public Downloader getDownloader() {
-		return downloader;
+
+	private int getNextChunk() throws InterruptedException {
+		int num = -1;
+		mutex.acquire();
+		for (int j = 0; j < downloader.chunkSeen.length; j++) {
+			if(!downloader.chunkSeen[j]){
+				num = j;
+				downloader.chunkSeen[j] = true;
+				mutex.release();
+				return num;
+			}
+		}
+		mutex.release();
+		return num;
 	}
+
 
 	/** FunciÃ³n de los hilos que atienden a los clientes.
 	 * @see java.lang.Thread#run()
@@ -47,41 +63,38 @@ public class DownloaderThread extends Thread {
 	public void run() {
 		try {
 			// En un Socket, para enviar hay que usar su OutputStream
-			for (i = 0; i < nChunks; i++) {
-				
-			
-			// Con esta parte del código, enviamos el socket, que contendrá el mensaje de request_chunk
-			DataOutputStream os = new DataOutputStream(socket.getOutputStream());					
-			//System.out.println("Ha enviado(el downloader): " + file.fileHash);			
-			String msg = MessageP.createMessageRequest(file.fileHash,i);
-			//System.out.println("Ha enviado: "+msg);
-			os.writeUTF(msg);
-
-
-			
-			
-			InputStream is = socket.getInputStream();
-			BufferedReader br = new BufferedReader(new InputStreamReader(is));			
-			String s = br.readLine();			
-			//System.out.println("Esto es lo que vale s : "+s);
-			switch (MessageP.parseResponse(s)){
-			case 2: 
-				//byte chunk[] = new byte[CHUNK_SIZE];
-				int pos = MessageP.getChunkNumber()*Downloader.CHUNK_SIZE;
-				File f = new File(folderName + "\\" + file.fileName);
-				if (!f.exists()) {
-					f.createNewFile();
-					}		
-				RandomAccessFile rfo = new RandomAccessFile(f, "rw");
-				rfo.seek(pos);
-				rfo.write(MessageP.getChunk(), 0, Downloader.CHUNK_SIZE);
-				rfo.close();
-				}
-				
-			}
-			System.out.println("-----------------All chunks have been sent-----------------");
+			// Con esta parte del cï¿½digo, enviamos el socket, que contendrï¿½ el mensaje de request_chunk
 			DataOutputStream os = new DataOutputStream(socket.getOutputStream());
-			os.writeUTF(MessageP.createMessageAll());
+
+			while (!fin) {
+				int chunkNumber = getNextChunk();
+				if(chunkNumber == -1) break;
+
+				MessageP msg = new MessageP(MessageCode.REQUEST_CHUNK, file.fileHash, chunkNumber, null);
+				os.writeUTF(msg.toString());
+				InputStream is = socket.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(is));
+				String s = br.readLine();
+				MessageP received = new MessageP();
+				switch (received.parseResponse(s)){
+					case SEND_CHUNK:
+						int numero = received.getChunkNumber();
+						int pos =numero*Downloader.CHUNK_SIZE;
+						File f = new File(folderName + "\\" + file.fileName);
+						if (!f.exists()) {
+							f.createNewFile();
+						}
+						RandomAccessFile rfo = new RandomAccessFile(f, "rw");
+						rfo.seek(pos);
+						rfo.write(received.getChunk(), 0, Downloader.CHUNK_SIZE);
+						rfo.close();
+				}
+
+			}
+			System.out.println("-----------------Descarga completada-----------------");
+			DataOutputStream osFinal = new DataOutputStream(socket.getOutputStream());
+			MessageP all = new MessageP(MessageCode.ALL_CHUNKS_RECEIVED, null, -1, null);
+			osFinal.writeUTF(all.toString());
 			
 
 		} catch (Exception e) {

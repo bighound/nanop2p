@@ -8,5 +8,5 @@ public enum MessageCode {
     SEND_CHUNK,
     ALL_CHUNKS_RECEIVED,
     FILE_NOT_FOUND,
-    INVALID_MESSAGE;
+    INVALID_CODE
 }
