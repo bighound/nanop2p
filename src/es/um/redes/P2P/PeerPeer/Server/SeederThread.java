@@ -1,11 +1,5 @@
 package es.um.redes.P2P.PeerPeer.Server;
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.net.Socket;
 import es.um.redes.P2P.PeerPeer.Client.Downloader;
 import es.um.redes.P2P.App.Peer;
@@ -62,16 +56,20 @@ public class SeederThread extends Thread {
 						File file = new File(this.folderName + "\\"+localname);
 						int pos = chunkNumber*Downloader.CHUNK_SIZE; // calculates the position in the file
 						byte chunk[] = new byte[byteSize];
-						RandomAccessFile rfi = new RandomAccessFile(file,"r");
-						rfi.seek(pos);
-						rfi.read(chunk);
-						rfi.close();
+						try {
+							RandomAccessFile rfi = new RandomAccessFile(file,"r");
+							rfi.seek(pos);
+							rfi.read(chunk);
+							rfi.close();
 
-						MessageP enviar = new MessageP(MessageCode.SEND_CHUNK, null, chunkNumber, chunk);
-						DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-						dos.writeUTF(enviar.toString());
+							MessageP enviar = new MessageP(MessageCode.SEND_CHUNK, null, chunkNumber, chunk);
+							DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+							dos.writeUTF(enviar.toString());
 
-						System.out.println("Lleva enviado : " + (pos+Downloader.CHUNK_SIZE));
+							//System.out.println("Lleva enviado : " + (pos+Downloader.CHUNK_SIZE));
+						} catch (FileNotFoundException f){
+							System.out.println("Fichero no encontrado");
+						}
 
 						break;
 
