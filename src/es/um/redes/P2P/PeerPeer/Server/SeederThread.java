@@ -34,7 +34,7 @@ class SeederThread extends Thread {
 				// Recibo de datos
 				InputStream is = socket.getInputStream();
 				BufferedReader br = new BufferedReader(new InputStreamReader(is));
-				String s = br.readLine();
+                String s = br.readLine();
 				MessageP received = new MessageP();
 				switch (received.parseResponse(s)) {
 					case REQUEST_CHUNK:
@@ -68,7 +68,7 @@ class SeederThread extends Thread {
 
 							//System.out.println("Lleva enviado : " + (pos+Downloader.CHUNK_SIZE));
 						} catch (FileNotFoundException f){
-							System.out.println("Fichero no encontrado");
+							System.out.println("Fichero no encontrado. Error en SeederThread.");
 						}
 
 						break;

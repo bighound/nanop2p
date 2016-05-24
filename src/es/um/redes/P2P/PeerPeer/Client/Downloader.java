@@ -7,12 +7,14 @@ import java.io.*;
 import java.net.*;
 import java.util.concurrent.Semaphore;
 
+
 public class Downloader {
 
 	public final static int CHUNK_SIZE = 1024;
 	boolean [] chunkSeen;
+    int [] chunkPerThread;
 
-	// Aqui hay que implementar la sincronizacion entre los trozos que descargan los peer
+    // Aqui hay que implementar la sincronizacion entre los trozos que descargan los peer
 	// para que no haya conflictos y varios peer no accedan al mismo trozo
 
 	public void download(InetSocketAddress [] dirs, FileInfo file, String folder) throws NumberFormatException, IOException
@@ -35,27 +37,40 @@ public class Downloader {
 			sockets[i] = new Socket(dirs[i].getAddress().toString().substring(1), dirs[i].getPort());
 		}
 
-		// Creamos los downloaderThread correspondientes
+        System.out.println("Descargando el archivo desde " + sockets.length + " seeders");
+        // Creamos los downloaderThread correspondientes
 		DownloaderThread [] downThreads = new DownloaderThread [sockets.length];
+        chunkPerThread = new int [sockets.length];
 		for (int i = 0; i < downThreads.length; i++) {
-			downThreads[i] = new DownloaderThread(this,sockets[i],file,folder, mutex);
+			downThreads[i] = new DownloaderThread(this,sockets[i],file,folder, mutex, i);
+            chunkPerThread[i] = 0;
 		}
 
+
+		long inicio = System.currentTimeMillis();
 		// Iniciamos los hilos
 		for (DownloaderThread downThread : downThreads) {
 			downThread.start();
 		}
-
+		long fin = 0;
 		// Esperamos a que los hilos terminen
 		try {
 			for (DownloaderThread downThread : downThreads) {
 				downThread.join();
 			}
+			fin = System.currentTimeMillis();
 		} catch (InterruptedException e) {
 			System.out.println("Error en la ejecucion de un DownloaderThread");
 		}
-
-	}
-
-
+        System.out.println("-----------------Descarga completada-----------------");
+        long diferencia = fin - inicio;
+        double segundos = (double)diferencia/1000.0;
+        System.out.println("La descarga ha tardado " + segundos + " ms");
+        System.out.println("Ha descargado:");
+        for (int i = 0; i < chunkPerThread.length; i++) {
+            System.out.println("\t" + chunkPerThread[0] + " chunks del seeder " + dirs[i].getAddress().toString().substring(1)
+                                + ":" + dirs[i].getPort());
+        }
+        //System.out.print("\033[H\033[2J");
+    }
 }

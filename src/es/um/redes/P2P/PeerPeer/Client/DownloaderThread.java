@@ -22,8 +22,9 @@ class DownloaderThread extends Thread {
 	private String folderName;
 	private boolean fin;
 	private Semaphore mutex;
+	private int threadNum;
 
-	DownloaderThread(Downloader downloader, Socket socket, FileInfo file, String folder,Semaphore mut) {
+	DownloaderThread(Downloader downloader, Socket socket, FileInfo file, String folder,Semaphore mut, int threadNumber) {
 		super("DowloaderThread");
 		this.socket = socket;
 		this.downloader = downloader;
@@ -31,6 +32,7 @@ class DownloaderThread extends Thread {
 		this.folderName = folder;
 		this.fin = false;
 		this.mutex = mut;
+		this.threadNum = threadNumber;
 	}
 
 	private int getNextChunk() throws InterruptedException {
@@ -40,6 +42,7 @@ class DownloaderThread extends Thread {
 			if(!downloader.chunkSeen[j]){
 				num = j;
 				downloader.chunkSeen[j] = true;
+				downloader.chunkPerThread[this.threadNum]++;
 				mutex.release();
 				return num;
 			}
@@ -61,7 +64,6 @@ class DownloaderThread extends Thread {
 			while (!fin) {
 				int chunkNumber = getNextChunk();
 				if(chunkNumber == -1) {
-
 					break;
 				}
 
@@ -89,7 +91,7 @@ class DownloaderThread extends Thread {
 					case FILE_NOT_FOUND:
 						fin=true;
 						notFound = true;
-						System.out.println("Fichero no encontrado");
+						System.out.println("Fichero no encontrado. FILE_NOT_FOUND recibido en DownloaderThread");
 						break;
 					case INVALID_CODE:
 						fin=true;
@@ -99,7 +101,6 @@ class DownloaderThread extends Thread {
 
 			}
 			if(!notFound){
-				System.out.println("-----------------Descarga completada-----------------");
 				DataOutputStream osFinal = new DataOutputStream(socket.getOutputStream());
 				MessageP all = new MessageP(MessageCode.ALL_CHUNKS_RECEIVED, null, -1, null);
 				osFinal.writeUTF(all.toString());
