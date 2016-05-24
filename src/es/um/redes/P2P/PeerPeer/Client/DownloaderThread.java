@@ -1,33 +1,24 @@
 package es.um.redes.P2P.PeerPeer.Client;
 
-//import es.um.redes.P2P.PeerPeer.Message.Message;
 import es.um.redes.P2P.PeerPeer.MessageP.MessageCode;
 import es.um.redes.P2P.PeerPeer.MessageP.MessageP;
-//import es.um.redes.P2P.PeerPeer.Server.Seeder;
-//import es.um.redes.P2P.PeerPeer.Server.SeederThread;
-import es.um.redes.P2P.PeerTracker.Message.Message;
 import es.um.redes.P2P.util.FileInfo;
-import es.um.redes.P2P.PeerPeer.Client.Downloader;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
-//import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-//import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.Socket;
 import java.util.concurrent.Semaphore;
 
-//import com.sun.org.apache.bcel.internal.generic.AALOAD;
 
-public class DownloaderThread extends Thread {
+class DownloaderThread extends Thread {
 
 
 	private Socket socket = null;
 	private Downloader downloader = null;
 	private FileInfo file;
-	private long fileLength;
 	private String folderName;
 	private boolean fin;
 	private Semaphore mutex;
@@ -40,7 +31,6 @@ public class DownloaderThread extends Thread {
 		this.folderName = folder;
 		this.fin = false;
 		this.mutex = mut;
-		this.fileLength = file.fileSize;
 	}
 
 	private int getNextChunk() throws InterruptedException {
@@ -67,10 +57,13 @@ public class DownloaderThread extends Thread {
 			// En un Socket, para enviar hay que usar su OutputStream
 			// Con esta parte del c�digo, enviamos el socket, que contendr� el mensaje de request_chunk
 			DataOutputStream os = new DataOutputStream(socket.getOutputStream());
-
+			boolean notFound = false;
 			while (!fin) {
 				int chunkNumber = getNextChunk();
-				if(chunkNumber == -1) break;
+				if(chunkNumber == -1) {
+
+					break;
+				}
 
 				MessageP msg = new MessageP(MessageCode.REQUEST_CHUNK, file.fileHash, chunkNumber, null);
 				os.writeUTF(msg.toString());
@@ -95,20 +88,29 @@ public class DownloaderThread extends Thread {
 						break;
 					case FILE_NOT_FOUND:
 						fin=true;
+						notFound = true;
 						System.out.println("Fichero no encontrado");
+						break;
+					case INVALID_CODE:
+						fin=true;
+						notFound=true;
 						break;
 				}
 
 			}
-			System.out.println("-----------------Descarga completada-----------------");
-			DataOutputStream osFinal = new DataOutputStream(socket.getOutputStream());
-			MessageP all = new MessageP(MessageCode.ALL_CHUNKS_RECEIVED, null, -1, null);
-			osFinal.writeUTF(all.toString());
-			
+			if(!notFound){
+				System.out.println("-----------------Descarga completada-----------------");
+				DataOutputStream osFinal = new DataOutputStream(socket.getOutputStream());
+				MessageP all = new MessageP(MessageCode.ALL_CHUNKS_RECEIVED, null, -1, null);
+				osFinal.writeUTF(all.toString());
+				os.close();
+				osFinal.close();
+			}else {
+				os.close();
+			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("Error en la descarga o en la conexion con el seeder");
 		}
-		
 	}
 }

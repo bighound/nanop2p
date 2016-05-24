@@ -35,34 +35,10 @@ import static es.um.redes.P2P.PeerPeer.MessageP.MessageCode.*;
 
 public class MessageP {
 
-    // Expresiones regulares
-
-    // Expresion regular que hace match con un mensaje entero
-    // Grupo 1: message
-    // Grupo 2: operation
-    // Grupo 3: tipo de operacion
-    // Grupo 4: contenido del mensaje a partir de la operacion
-    //private static String mensaje = "<(message)>\\s*?<(operation)>(.*?)</\\2>((.|\\s)*?)</\\1>";
-	private String mensaje = "<(message)><(operation)>(.*?)</\\2>(.*?)</\\1>";
-    // Expresion regular que hace match con un hash
-    // Grupo 2: hash number
-    // Grupo 4: chunk_number
-    private String reqChunks = "<(hash)>(.*?)</\\1>\\s*?<(chunk)>(.*?)</\\3>";
-
-    // Expresion regular que hace match con un numero de chunk
-    // Grupo 2: chunk
-    // Falta chunk_number .ya no falta
-    private String sndChunk = "<(send_chunk)>(.*?)</\\1><(chunk)>(.*?)</\\3>";
-
-    // Expresion regular que hace match con un chunk
-    // Grupo 2: hash_number
-    private static String fileNot = "<(send_chunk)>(.*?)</\\1>";
-
     private MessageCode codigo;
     private String hash;
     private int chunkNumber;
     private byte[] chunk;
-    private String chunkToString;
 
 
     // Constructor
@@ -137,15 +113,24 @@ public class MessageP {
 	public int getChunkNumber() {
         return this.chunkNumber;
 	}
-
-    public MessageCode getCodigo() {
-        return codigo;
-    }
-
-
-
     
     public MessageCode parseResponse(String m){
+        // Expresion regular que hace match con un mensaje entero
+        // Grupo 1: message
+        // Grupo 2: operation
+        // Grupo 3: tipo de operacion
+        // Grupo 4: contenido del mensaje a partir de la operacion
+        //private static String mensaje = "<(message)>\\s*?<(operation)>(.*?)</\\2>((.|\\s)*?)</\\1>";
+        String mensaje = "<(message)><(operation)>(.*?)</\\2>(.*?)</\\1>";
+        // Expresion regular que hace match con un hash
+        // Grupo 2: hash number
+        // Grupo 4: chunk_number
+        String reqChunks = "<(hash)>(.*?)</\\1>\\s*?<(chunk)>(.*?)</\\3>";
+        // Expresion regular que hace match con un numero de chunk
+        // Grupo 2: chunk
+        // Falta chunk_number .ya no falta
+        String sndChunk = "<(send_chunk)>(.*?)</\\1><(chunk)>(.*?)</\\3>";
+
         Pattern p;
         Pattern pat = Pattern.compile(mensaje);
         Matcher mat = pat.matcher(m);
@@ -170,7 +155,7 @@ public class MessageP {
                 mat = p.matcher(contenido);
                 mat.find();
                 chunkNumber = Integer.parseInt(mat.group(4));
-                chunkToString = mat.group(2);
+                String chunkToString = mat.group(2);
                 chunk=DatatypeConverter.parseBase64Binary(chunkToString);
                 return SEND_CHUNK;
 

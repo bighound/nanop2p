@@ -16,18 +16,22 @@ public class Seeder implements Runnable {
 	
     private InetSocketAddress socketAddress;
     private ServerSocket seederSocket = null;
-	String folder;
-	
+	private String folder;
+
 
     public Seeder(String folder) {
 		this.folder = folder;
     }
 
-    /** 
-	 * Función del hilo principal del servidor. 	
+	public int getPort(){
+		return this.socketAddress.getPort();
+	}
+
+    /**
+	 * Función del hilo principal del servidor.
 	 * @see java.lang.Runnable#run()
 	 */
-    
+
 	public void run()
 	{
    		try {
@@ -37,21 +41,16 @@ public class Seeder implements Runnable {
    				// El accept retorna un nuevo socket para hablar directamente
    				// con el nuevo cliente conectado
    				Socket s = seederSocket.accept();
-   				
+
    				// Inicia el hilo de servicio al cliente recién conectado,
-   				// enviándole el estado general del servidor y el socket de 
+   				// enviándole el estado general del servidor y el socket de
    				// este cliente
    				new SeederThread(s, folder).start();
    			}
    		} catch (IOException e) {
-   			// Do nothing
+			System.out.println("Error en la conexion con el seeder");
    		}
 	}
-    
-   
-    
-
-
 
 	/**
      * Inicio del hilo del servidor.
@@ -75,14 +74,4 @@ public class Seeder implements Runnable {
     	System.out.println("Seeder running on port " +
     			this.socketAddress.getPort() + ".");
     }
-
-	public int getPort(){
-        return this.socketAddress.getPort();
-    }
-
-    /*public static void main(String[] args)
-    {
-    	Seeder server = new Seeder();
-    	server.init();
-    }*/
 }

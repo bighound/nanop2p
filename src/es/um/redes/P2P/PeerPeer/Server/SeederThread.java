@@ -11,13 +11,13 @@ import sun.audio.AudioStream;
 /**
  * Hilo que se ejecuta cada vez que se conecta un nuevo cliente.
  */
-public class SeederThread extends Thread {
+class SeederThread extends Thread {
 	private Socket socket = null;
 	private String folderName;
 	private String localname;
 	private boolean all_chunks_received;
 
-	public SeederThread(Socket socket, String folder) {
+	SeederThread(Socket socket, String folder) {
 		super("SeederThread");
 		this.socket = socket;
 		this.folderName = folder;
@@ -83,10 +83,13 @@ public class SeederThread extends Thread {
 						break;
 
 					case FILE_NOT_FOUND:   //File not found
-						//m = MessageP.createMessageNot("Este es un hash");
 						MessageP notFound = new MessageP(MessageCode.FILE_NOT_FOUND, null, -1, null);
 						DataOutputStream tres = new DataOutputStream(socket.getOutputStream());
 						tres.writeUTF(notFound.toString());
+						break;
+					case INVALID_CODE:
+						all_chunks_received=true;
+						socket.close();
 						break;
 					default:
 						System.out.println("Mensaje con formato no correcto");

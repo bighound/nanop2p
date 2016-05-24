@@ -4,30 +4,25 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.LinkedList;
 import java.util.Scanner;
-
-
 import es.um.redes.P2P.PeerPeer.Client.Downloader;
 import es.um.redes.P2P.PeerPeer.Server.Seeder;
-//import es.um.redes.P2P.PeerPeer.Server.SeederThread;
 import es.um.redes.P2P.PeerTracker.Client.Reporter;
 import es.um.redes.P2P.PeerTracker.Message.Message;
 import es.um.redes.P2P.PeerTracker.Message.MessageDataFileInfo;
 import es.um.redes.P2P.PeerTracker.Message.MessageDataSeedInfo;
-import es.um.redes.P2P.PeerTracker.Message.ProtocolState;
 import es.um.redes.P2P.util.FileInfo;
-
 import static java.lang.System.exit;
 
 public class Peer {
 	public static FileInfo localfiles[];
 
-	public static String alinearDerecha(String cadena, int espacios) {
+	private static String alinearDerecha(String cadena, int espacios) {
 		return String.format("%1$-" + espacios + "s", cadena);
 	}
 
 
 	private static void imprimeQuery(FileInfo[] peerF, FileInfo[] trackerF){
-		LinkedList<FileInfo> queryList = new LinkedList<FileInfo>();
+		LinkedList<FileInfo> queryList = new LinkedList<>();
 		for (FileInfo trackerFile: trackerF) {
 			boolean flag = true;
 			for (FileInfo peerFile: peerF) {
@@ -75,7 +70,7 @@ public class Peer {
 		client.start();
 
 		Scanner scan=null;
-		System.out.println("Comandos: query, download <hash>, exit");
+		System.out.println("Comandos: query, download <hash>, quit");
 		while (continua) {
 			scan = new Scanner(System.in);
 			String entrada = scan.nextLine();
@@ -84,26 +79,34 @@ public class Peer {
             MessageDataFileInfo mdf;
             MessageDataSeedInfo mds;
 
-
-            //query, download, exit
 			switch (arg[0]) {
 			case "query":
-				localFile  = FileInfo.loadFilesFromFolder(peerSharedFolder);
-				client.sendMsg(Message.OP_ADD_SEED, localFile);
-				mensaje = client.sendMsg(Message.OP_QUERY_FILES, localFile);
-				mdf = (MessageDataFileInfo) mensaje;
-				FileInfo[] filesTracker = mdf.getFileList();
-				Peer.localfiles=filesTracker;
-				FileInfo[] filesPeer = FileInfo.loadFilesFromFolder(peerSharedFolder);
-				imprimeQuery(filesPeer, filesTracker);
+				try{
+					localFile  = FileInfo.loadFilesFromFolder(peerSharedFolder);
+					client.sendMsg(Message.OP_ADD_SEED, localFile);
+					mensaje = client.sendMsg(Message.OP_QUERY_FILES, localFile);
+					mdf = (MessageDataFileInfo) mensaje;
+					FileInfo[] filesTracker = mdf.getFileList();
+					Peer.localfiles=filesTracker;
+					FileInfo[] filesPeer = FileInfo.loadFilesFromFolder(peerSharedFolder);
+					imprimeQuery(filesPeer, filesTracker);
+				} catch (NullPointerException e){
+					System.out.println("Fallo al intentar conectarse con el tracker");
+					exit(1);
+				}
 				break;
 
 			case "download":
                 // Enviamos el query files para obtener la lista de ficheros del tracker
-                mensaje = client.sendMsg(Message.OP_QUERY_FILES, localFile);
-                mdf = (MessageDataFileInfo) mensaje;
-                FileInfo[] fileList;
-                fileList = mdf.getFileList();	// he cambiado file por fileList por convenio.
+                FileInfo[] fileList = new FileInfo[0];
+                try{
+                    mensaje = client.sendMsg(Message.OP_QUERY_FILES, localFile);
+                    mdf = (MessageDataFileInfo) mensaje;
+                    fileList = mdf.getFileList();
+                } catch (NullPointerException e){
+                    System.out.println("Fallo al intentar conectarse con el tracker");
+                    exit(1);
+                }
 
                 // Comprobamos el uso correcto del comando
                 if (arg.length == 2){
@@ -116,10 +119,10 @@ public class Peer {
                 int posicion = -1;
                 int ambiguo = 0;
                 for (int i = 0; i < fileList.length; i++) {
-                    if (fileList[i].fileHash.contains(hash)) {          // Cambiamos equals por contains
+                    if (fileList[i].fileHash.contains(hash)) {
                     	posicion = i; 
                     	ambiguo ++;
-					 	if (ambiguo==2) posicion =-2;                      // Con esto podemos poner un trozo del hash para descargarnoslo
+					 	if (ambiguo==2) posicion =-2;
                     }
                 }
                 if (posicion == -1){
@@ -131,24 +134,43 @@ public class Peer {
                 }
                 // Enviamos el getseeds del hash deseado y obtenemos su IP y puerto
                 fileToSend[0] = fileList[posicion];
-				mensaje = client.sendMsg(Message.OP_GET_SEEDS, fileToSend);
-                mds = (MessageDataSeedInfo) mensaje;
-				InetSocketAddress [] dirs;
-				dirs = mds.getSeedList();
+
+                InetSocketAddress [] dirs = new InetSocketAddress[0];
+                try{
+                    mensaje = client.sendMsg(Message.OP_GET_SEEDS, fileToSend);
+                    mds = (MessageDataSeedInfo) mensaje;
+                    dirs = mds.getSeedList();
+                }catch (NullPointerException e){
+                    System.out.println("Fallo al intentar conectarse con el tracker");
+                    exit(1);
+                }
+
 				// Crear un objeto downloader
 				Downloader down = new Downloader();
 				down.download(dirs, fileToSend[0],peerSharedFolder);
+                localFile = FileInfo.loadFilesFromFolder(peerSharedFolder);
+                try{
+                    client.sendMsg(Message.OP_ADD_SEED, localFile);
+                } catch (NullPointerException e){
+                    System.out.println("Fallo al intentar conectarse con el tracker");
+                    exit(1);
+                }
 				break;
-            case "exit":
+            case "quit":
 				continua=false;
 				localFile = FileInfo.loadFilesFromFolder(peerSharedFolder);
-				client.sendMsg(Message.OP_REMOVE_SEED, localFile);
+				try{
+                    client.sendMsg(Message.OP_REMOVE_SEED, localFile);
+                } catch (NullPointerException e){
+                    System.out.println("Fallo al intentar conectarse con el tracker");
+                    exit(1);
+                }
 				System.out.println("Fin del proceso del peer");
 				exit(0);
 				break;
 			default:
 				System.out.println("Comando incorrecto");
-				System.out.println("Comandos: query, download <hash>, exit");
+				System.out.println("Comandos: query, download <hash>, quit");
 				break;
 			}
 		}

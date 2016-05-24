@@ -2,19 +2,13 @@ package es.um.redes.P2P.PeerTracker.Client;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
+import java.net.*;
 //import java.net.SocketException;
 
 import es.um.redes.P2P.PeerTracker.Message.Message;
 import es.um.redes.P2P.util.FileInfo;
 
 public class Reporter extends Thread {
-	/**
-	 * Path to local directory whose content is shared in network
-	 */
-	private String sharedFolderPath;
 	/**
 	 * Tracker hostname, for establishing connection
 	 */
@@ -31,19 +25,19 @@ public class Reporter extends Thread {
 	public Reporter(String name, String sharedFolder, String tracker, int port) {
 		super(name);
 		//Use getProperty("user.home") instead of System.getenv("HOME") for platform independent code
+		/*
+		  Path to local directory whose content is shared in network
+		*/
+		String sharedFolderPath;
 		if (new File(sharedFolder).isAbsolute()) {
 			sharedFolderPath = sharedFolder;
 		}
 		else {
-			sharedFolderPath = new String(System.getProperty("user.home")+"/"+sharedFolder); 
+			sharedFolderPath =(System.getProperty("user.home") + "/" + sharedFolder);
 		}
 
 		trackerHostname = tracker;
 		seedPort = port;
-	}
-	
-	public String getSharedFolderPath() {
-		return sharedFolderPath;
 	}
 
 	public Message sendMsg(byte requestOpcode, FileInfo[] file) throws IOException{
@@ -55,19 +49,25 @@ public class Reporter extends Thread {
 		
 		// Preparamos mensaje
 		Message message = Message.makeRequest(requestOpcode, seedPort, file);
-		buf=message.toByteArray();
-		
-		// Enviamos el mensaje
-		InetSocketAddress addr = new InetSocketAddress(trackerHostname, PORT);
-		DatagramPacket packet = new DatagramPacket(buf, buf.length, addr);
-		socket.send(packet);
-		//System.out.println(message.toString() + "\n");
-		
-		
+		InetSocketAddress addr;
+		DatagramPacket packet;
+		if (message != null) {
+			buf=message.toByteArray();
+			// Enviamos el mensaje
+			addr = new InetSocketAddress(trackerHostname, PORT);
+			packet = new DatagramPacket(buf, buf.length, addr);
+			socket.send(packet);
+		}
 		// Recibimos la respuesta
 		buf = new byte[Message.MAX_UDP_PACKET_LENGTH];
 		packet = new DatagramPacket(buf, buf.length);
-		socket.receive(packet);
+
+		try{
+			socket.setSoTimeout(1000);
+			socket.receive(packet);
+		} catch(SocketTimeoutException e1){
+			System.out.println("Timeout excedido en la recepcion de un mensaje del tracker");
+		}
 		message = Message.parseResponse(buf);
 		
 		// Cerramos el socket
@@ -76,54 +76,4 @@ public class Reporter extends Thread {
 		return message;
 		
 	}
-
-	
-	/*public void run() {
-		System.out.println("Reporter starting conversation with tracker at "+trackerHostname);
-		System.out.println("Shared folder path is "+sharedFolderPath);
-
-		// TODO: Ver ejercicios del boletín de sockets UDP
-		
-		FileInfo[] localFile = FileInfo.loadFilesFromFolder(sharedFolderPath);
-		
-		try {
-			// Apartado a
-			System.out.println("-----Apartado a-----");
-			MessageP messagea = sendMsg(MessageP.OP_ADD_SEED, localFile);
-			// Devuelve un mensaje ADD_SEDD_ACK
-			System.out.println(messagea.toString() + "\n");
-			
-			
-			// Apartado b
-			System.out.println("-----Apartado b-----");
-			MessageP messageb = sendMsg(MessageP.OP_QUERY_FILES, localFile);
-			// Devuelve un mensaje LIST_FILES
-			System.out.println(messageb.toString() + "\n");
-			
-			// Apartado c
-			System.out.println("-----Apartado c-----");
-			FileInfo[] filec = new FileInfo[1];
-			filec[0] = localFile[0];
-			MessageP messagec = sendMsg(MessageP.OP_GET_SEEDS, filec);
-			// Devuelve un mensaje SEED_LIST
-			System.out.println(messagec.toString() + "\n");
-			
-			// Apartado d
-			System.out.println("-----Apartado d-----");
-			FileInfo[] filed = new FileInfo[1];
-			filed[0] = localFile[0];
-			MessageP messaged = sendMsg(MessageP.OP_REMOVE_SEED, filed);
-			System.out.println(messaged.toString() + "\n");
-			// Comprobamos que se ha borrado
-			MessageP messagedq = sendMsg(MessageP.OP_QUERY_FILES, localFile);
-			System.out.println(messagedq.toString() + "\n");
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		}		
-		
-		
-		System.out.println("Reporter ending conversation with tracker");
-
-	}*/
 }

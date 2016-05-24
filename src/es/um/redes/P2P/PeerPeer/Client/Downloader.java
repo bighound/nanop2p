@@ -10,22 +10,14 @@ import java.util.concurrent.Semaphore;
 public class Downloader {
 
 	public final static int CHUNK_SIZE = 1024;
-	public boolean [] chunkSeen;
-	private Semaphore mutex;
-	
+	boolean [] chunkSeen;
+
 	// Aqui hay que implementar la sincronizacion entre los trozos que descargan los peer
 	// para que no haya conflictos y varios peer no accedan al mismo trozo
 
-	public void download(InetSocketAddress [] dirs, FileInfo file, String folder) throws NumberFormatException, UnknownHostException, IOException
+	public void download(InetSocketAddress [] dirs, FileInfo file, String folder) throws NumberFormatException, IOException
 	{
-		mutex = new Semaphore(1);
-
-		// Parameters are <hostname> <port>
-
-		/*System.out.println("Hay " + dirs.length + " peers");
-		for (int i = 0; i < dirs.length; i++) {
-			System.out.println("Peer: " + dirs[i].getAddress().toString().substring(1) + ":" + dirs[i].getPort());
-		}*/
+		Semaphore mutex = new Semaphore(1);
 
 		// Comprobar que chunk=0
 		int nChunks = (int) file.fileSize/CHUNK_SIZE;
@@ -50,17 +42,17 @@ public class Downloader {
 		}
 
 		// Iniciamos los hilos
-		for (int i = 0; i < downThreads.length; i++) {
-			downThreads[i].start();
+		for (DownloaderThread downThread : downThreads) {
+			downThread.start();
 		}
 
 		// Esperamos a que los hilos terminen
 		try {
-			for (int i = 0; i < downThreads.length; i++) {
-				downThreads[i].join();
+			for (DownloaderThread downThread : downThreads) {
+				downThread.join();
 			}
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			System.out.println("Error en la ejecucion de un DownloaderThread");
 		}
 
 	}
