@@ -12,7 +12,6 @@ import java.io.RandomAccessFile;
 import java.net.Socket;
 import java.util.concurrent.Semaphore;
 
-
 class DownloaderThread extends Thread {
 
 
@@ -50,6 +49,7 @@ class DownloaderThread extends Thread {
 		mutex.release();
 		return num;
 	}
+	
 
 
 	/** Función de los hilos que atienden a los clientes.
@@ -77,9 +77,8 @@ class DownloaderThread extends Thread {
 					case SEND_CHUNK:
 						int numero = received.getChunkNumber();
 						byte [] chunkData = received.getChunk();
-
 						int pos =numero*Downloader.CHUNK_SIZE;
-						File f = new File(folderName + "\\" + file.fileName);
+						File f = new File(folderName + "/" + file.fileName);
 						if (!f.exists()) {
 							f.createNewFile();
 						}
@@ -97,6 +96,8 @@ class DownloaderThread extends Thread {
 						fin=true;
 						notFound=true;
 						break;
+					default:
+						break;
 				}
 
 			}
@@ -104,10 +105,6 @@ class DownloaderThread extends Thread {
 				DataOutputStream osFinal = new DataOutputStream(socket.getOutputStream());
 				MessageP all = new MessageP(MessageCode.ALL_CHUNKS_RECEIVED, null, -1, null);
 				osFinal.writeUTF(all.toString());
-				os.close();
-				osFinal.close();
-			}else {
-				os.close();
 			}
 
 		} catch (Exception e) {

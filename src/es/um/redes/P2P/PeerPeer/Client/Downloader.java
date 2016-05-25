@@ -5,6 +5,7 @@ import es.um.redes.P2P.util.FileInfo;
 
 import java.io.*;
 import java.net.*;
+import java.text.DecimalFormat;
 import java.util.concurrent.Semaphore;
 
 
@@ -13,6 +14,7 @@ public class Downloader {
 	public final static int CHUNK_SIZE = 1024;
 	boolean [] chunkSeen;
     int [] chunkPerThread;
+    
 
     // Aqui hay que implementar la sincronizacion entre los trozos que descargan los peer
 	// para que no haya conflictos y varios peer no accedan al mismo trozo
@@ -20,7 +22,6 @@ public class Downloader {
 	public void download(InetSocketAddress [] dirs, FileInfo file, String folder) throws NumberFormatException, IOException
 	{
 		Semaphore mutex = new Semaphore(1);
-
 		// Comprobar que chunk=0
 		int nChunks = (int) file.fileSize/CHUNK_SIZE;
 		if (file.fileSize%CHUNK_SIZE!=0) nChunks++;
@@ -65,12 +66,13 @@ public class Downloader {
         System.out.println("-----------------Descarga completada-----------------");
         long diferencia = fin - inicio;
         double segundos = (double)diferencia/1000.0;
-        System.out.println("La descarga ha tardado " + segundos + " ms");
+        DecimalFormat df = new DecimalFormat("#.##");
+        double velocidad = (file.fileSize/1024/1024)/segundos;
+        System.out.println("La descarga ha tardado " + segundos + " s a " + df.format(velocidad) + " MB/s");
         System.out.println("Ha descargado:");
         for (int i = 0; i < chunkPerThread.length; i++) {
             System.out.println("\t" + chunkPerThread[0] + " chunks del seeder " + dirs[i].getAddress().toString().substring(1)
                                 + ":" + dirs[i].getPort());
         }
-        //System.out.print("\033[H\033[2J");
     }
 }

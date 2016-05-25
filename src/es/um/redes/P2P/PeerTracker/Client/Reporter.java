@@ -1,6 +1,5 @@
 package es.um.redes.P2P.PeerTracker.Client;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.*;
 //import java.net.SocketException;
@@ -28,14 +27,6 @@ public class Reporter extends Thread {
 		/*
 		  Path to local directory whose content is shared in network
 		*/
-		String sharedFolderPath;
-		if (new File(sharedFolder).isAbsolute()) {
-			sharedFolderPath = sharedFolder;
-		}
-		else {
-			sharedFolderPath =(System.getProperty("user.home") + "/" + sharedFolder);
-		}
-
 		trackerHostname = tracker;
 		seedPort = port;
 	}

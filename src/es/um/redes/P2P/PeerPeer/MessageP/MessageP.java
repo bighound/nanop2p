@@ -75,6 +75,8 @@ public class MessageP {
                 this.chunkNumber = -1;
                 this.chunk = null;
                 break;
+			default:
+				break;
         }
     }
 
@@ -98,6 +100,8 @@ public class MessageP {
             case FILE_NOT_FOUND:
                 salida = ("<message><operation>file_not_found</operation><hash>" + this.hash + "</hash></message>\n");
                 break;
+			default:
+				break;
         }
         return salida;
     }
@@ -133,10 +137,15 @@ public class MessageP {
 
         Pattern p;
         Pattern pat = Pattern.compile(mensaje);
-        Matcher mat = pat.matcher(m);
-        if (!mat.find()){
-            System.out.println("Mensaje con formato no correcto");
-        }
+        Matcher mat = null;
+        try{
+        	mat = pat.matcher(m);
+        	if (!mat.find()){
+                System.out.println("Mensaje con formato no correcto");
+            }
+        }catch (NullPointerException e){
+        	// Do nothing
+        }                
         String tipoOperacion = mat.group(3);
         String contenido = mat.group(4);
 

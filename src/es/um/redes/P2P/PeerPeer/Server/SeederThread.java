@@ -5,8 +5,6 @@ import es.um.redes.P2P.PeerPeer.Client.Downloader;
 import es.um.redes.P2P.App.Peer;
 import es.um.redes.P2P.PeerPeer.MessageP.MessageCode;
 import es.um.redes.P2P.PeerPeer.MessageP.MessageP;
-import sun.audio.AudioPlayer;
-import sun.audio.AudioStream;
 
 /**
  * Hilo que se ejecuta cada vez que se conecta un nuevo cliente.
@@ -32,7 +30,7 @@ class SeederThread extends Thread {
 			int chunkNumber;
 			while(!all_chunks_received){
 				// Recibo de datos
-				InputStream is = socket.getInputStream();
+				DataInputStream is = new DataInputStream(socket.getInputStream());
 				BufferedReader br = new BufferedReader(new InputStreamReader(is));
                 String s = br.readLine();
 				MessageP received = new MessageP();
@@ -53,7 +51,7 @@ class SeederThread extends Thread {
 						else byteSize = Downloader.CHUNK_SIZE;
 
 
-						File file = new File(this.folderName + "\\"+localname);
+						File file = new File(this.folderName + "/" +localname);
 						int pos = chunkNumber*Downloader.CHUNK_SIZE; // calculates the position in the file
 						byte chunk[] = new byte[byteSize];
 						try {
@@ -66,20 +64,13 @@ class SeederThread extends Thread {
 							DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
 							dos.writeUTF(enviar.toString());
 
-							//System.out.println("Lleva enviado : " + (pos+Downloader.CHUNK_SIZE));
 						} catch (FileNotFoundException f){
-							System.out.println("Fichero no encontrado. Error en SeederThread.");
+							f.printStackTrace();
 						}
 
 						break;
 
-					case ALL_CHUNKS_RECEIVED:  // all_chunks_received Si me envian un all chunks received entonces le env�o un mensaje de correcto:
-						String sonido = "Audios\\allchunksreceived.wav";
-						InputStream in = new FileInputStream(sonido);
-						AudioStream audio = new AudioStream(in);
-						AudioPlayer.player.start(audio);
-						all_chunks_received=true;
-						socket.close();
+					case ALL_CHUNKS_RECEIVED:
 						break;
 
 					case FILE_NOT_FOUND:   //File not found
@@ -89,14 +80,12 @@ class SeederThread extends Thread {
 						break;
 					case INVALID_CODE:
 						all_chunks_received=true;
-						socket.close();
 						break;
 					default:
 						System.out.println("Mensaje con formato no correcto");
 						break;
 				}
 			}
-			socket.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

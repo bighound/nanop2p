@@ -3,6 +3,7 @@ package es.um.redes.P2P.App;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 import es.um.redes.P2P.PeerPeer.Client.Downloader;
 import es.um.redes.P2P.PeerPeer.Server.Seeder;
@@ -68,12 +69,20 @@ public class Peer {
 
 		// Start client thread
 		client.start();
-
+		
+		Downloader down = null;
+				
 		Scanner scan=null;
 		System.out.println("Comandos: query, download <hash>, quit");
 		while (continua) {
 			scan = new Scanner(System.in);
-			String entrada = scan.nextLine();
+			String entrada = "";
+			try{
+				entrada = scan.nextLine();
+			}catch (NoSuchElementException e){
+				
+			}
+			
 			String [] arg = entrada.split("\\s+");
 			Message mensaje;
             MessageDataFileInfo mdf;
@@ -82,8 +91,8 @@ public class Peer {
 			switch (arg[0]) {
 			case "query":
 				try{
-					localFile  = FileInfo.loadFilesFromFolder(peerSharedFolder);
 					client.sendMsg(Message.OP_ADD_SEED, localFile);
+					localFile  = FileInfo.loadFilesFromFolder(peerSharedFolder);
 					mensaje = client.sendMsg(Message.OP_QUERY_FILES, localFile);
 					mdf = (MessageDataFileInfo) mensaje;
 					FileInfo[] filesTracker = mdf.getFileList();
@@ -146,7 +155,7 @@ public class Peer {
                 }
 
 				// Crear un objeto downloader
-				Downloader down = new Downloader();
+				down = new Downloader();
 				down.download(dirs, fileToSend[0],peerSharedFolder);
                 localFile = FileInfo.loadFilesFromFolder(peerSharedFolder);
                 try{
@@ -155,7 +164,7 @@ public class Peer {
                     System.out.println("Fallo al intentar conectarse con el tracker");
                     exit(1);
                 }
-				break;
+				break;				
             case "quit":
 				continua=false;
 				localFile = FileInfo.loadFilesFromFolder(peerSharedFolder);
@@ -175,7 +184,7 @@ public class Peer {
 			}
 		}
 		
-		scan.close();
+		//scan.close();
 		
 		
 		
